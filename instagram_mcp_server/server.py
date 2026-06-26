@@ -25,7 +25,6 @@ from instagram_mcp_server.sequential_tool_middleware import (
 from instagram_mcp_server.tools.user import register_user_tools
 from instagram_mcp_server.tools.posts import register_post_tools
 from instagram_mcp_server.tools.search import register_search_tools
-from instagram_mcp_server.tools.insights import register_insights_tools
 from instagram_mcp_server.tools.actions import register_action_tools
 from instagram_mcp_server.tools.messaging import register_messaging_tools
 from instagram_mcp_server.tools.transcription import register_transcription_tools
@@ -62,7 +61,6 @@ def create_mcp_server() -> FastMCP:
 
     # Register all tools
     register_user_tools(mcp)
-    register_insights_tools(mcp)
     register_post_tools(mcp)
     register_messaging_tools(mcp)
     register_search_tools(mcp)

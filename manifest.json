@@ -66,14 +66,6 @@
       "description": "Get user's story highlights"
     },
     {
-      "name": "get_business_insights",
-      "description": "Get Business/Creator account insights and analytics"
-    },
-    {
-      "name": "get_audience_insights",
-      "description": "Get audience demographics for Business/Creator accounts"
-    },
-    {
       "name": "search_users",
       "description": "Search for Instagram users by username or name"
     },
@@ -128,6 +120,22 @@
     {
       "name": "comment_on_post",
       "description": "Post a comment on a post"
+    },
+    {
+      "name": "transcribe_user_reels",
+      "description": "Download and transcribe multiple reels to SRT subtitles"
+    },
+    {
+      "name": "transcribe_reel",
+      "description": "Transcribe a single reel by URL to SRT"
+    },
+    {
+      "name": "analyze_reel_with_gemini",
+      "description": "Multimodal reel analysis (summary, transcript, topics, quotes)"
+    },
+    {
+      "name": "bulk_analyze_reels_with_gemini",
+      "description": "Analyze multiple reels with Gemini AI"
     },
     {
       "name": "close_session",

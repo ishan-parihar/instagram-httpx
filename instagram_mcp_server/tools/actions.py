@@ -12,9 +12,9 @@ from fastmcp import Context, FastMCP
 from fastmcp.dependencies import CurrentContext
 
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
-from instagram_mcp_server.core.exceptions import AuthenticationError
-from instagram_mcp_server.dependencies import get_ready_extractor, handle_auth_error
+from instagram_mcp_server.dependencies import get_ready_extractor
 from instagram_mcp_server.error_handler import raise_tool_error
+from instagram_mcp_server.tools._guard import tool_guard
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions", "social"},
     )
+    @tool_guard("follow_user")
     async def follow_user(
         username: str,
         ctx: Context = CurrentContext(),
@@ -40,28 +41,18 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username to follow (e.g., "natgeo")
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, and optional message.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="follow_user")
-            logger.info("Following user: %s", username)
+        extractor = await get_ready_extractor(ctx, tool_name="follow_user")
+        logger.info("Following user: %s", username)
 
-            result = await extractor.follow_user(
-                username,
-            )
+        result = await extractor.follow_user(
+            username,
+        )
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "follow_user")
-        except Exception as e:
-            raise_tool_error(e, "follow_user")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -69,6 +60,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions", "social"},
     )
+    @tool_guard("unfollow_user")
     async def unfollow_user(
         username: str,
         ctx: Context = CurrentContext(),
@@ -80,28 +72,18 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username to unfollow (e.g., "natgeo")
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, and optional message.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="unfollow_user")
-            logger.info("Unfollowing user: %s", username)
+        extractor = await get_ready_extractor(ctx, tool_name="unfollow_user")
+        logger.info("Unfollowing user: %s", username)
 
-            result = await extractor.unfollow_user(
-                username,
-            )
+        result = await extractor.unfollow_user(
+            username,
+        )
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "unfollow_user")
-        except Exception as e:
-            raise_tool_error(e, "unfollow_user")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -109,6 +91,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions", "social"},
     )
+    @tool_guard("like_post")
     async def like_post(
         post_url: str,
         ctx: Context = CurrentContext(),
@@ -120,26 +103,16 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, and optional message.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="like_post")
-            logger.info("Liking post: %s", post_url)
+        extractor = await get_ready_extractor(ctx, tool_name="like_post")
+        logger.info("Liking post: %s", post_url)
 
-            result = await extractor.like_post(post_url)
+        result = await extractor.like_post(post_url)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "like_post")
-        except Exception as e:
-            raise_tool_error(e, "like_post")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -147,6 +120,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions", "social"},
     )
+    @tool_guard("unlike_post")
     async def unlike_post(
         post_url: str,
         ctx: Context = CurrentContext(),
@@ -158,26 +132,16 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, and optional message.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="unlike_post")
-            logger.info("Unliking post: %s", post_url)
+        extractor = await get_ready_extractor(ctx, tool_name="unlike_post")
+        logger.info("Unliking post: %s", post_url)
 
-            result = await extractor.unlike_post(post_url)
+        result = await extractor.unlike_post(post_url)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "unlike_post")
-        except Exception as e:
-            raise_tool_error(e, "unlike_post")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -185,6 +149,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions"},
     )
+    @tool_guard("save_post")
     async def save_post(
         post_url: str,
         collection: str | None = None,
@@ -198,31 +163,21 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
-            ctx: FastMCP context for progress reporting
             collection: Optional collection name to save the post into
 
         Returns:
             Dict with url, status, and optional message.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="save_post")
-            logger.info(
-                "Saving post: %s (collection=%s)",
-                post_url,
-                collection,
-            )
+        extractor = await get_ready_extractor(ctx, tool_name="save_post")
+        logger.info(
+            "Saving post: %s (collection=%s)",
+            post_url,
+            collection,
+        )
 
-            result = await extractor.save_post(post_url, collection)
+        result = await extractor.save_post(post_url, collection)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "save_post")
-        except Exception as e:
-            raise_tool_error(e, "save_post")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -230,6 +185,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"actions", "social"},
     )
+    @tool_guard("comment_on_post")
     async def comment_on_post(
         post_url: str,
         comment: str,
@@ -246,7 +202,6 @@ def register_action_tools(mcp: FastMCP) -> None:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
             comment: The comment text to post
             confirm_post: Must be True to actually post the comment
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, and optional message.
@@ -258,18 +213,9 @@ def register_action_tools(mcp: FastMCP) -> None:
                 "message": "Comment not posted. Set confirm_post=True to post.",
             }
 
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="comment_on_post")
-            logger.info("Commenting on post: %s", post_url)
+        extractor = await get_ready_extractor(ctx, tool_name="comment_on_post")
+        logger.info("Commenting on post: %s", post_url)
 
-            result = await extractor.comment_on_post(post_url, comment)
+        result = await extractor.comment_on_post(post_url, comment)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "comment_on_post")
-        except Exception as e:
-            raise_tool_error(e, "comment_on_post")  # NoReturn
+        return result

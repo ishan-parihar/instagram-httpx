@@ -22,6 +22,8 @@ from instagram_mcp_server.error_handler import raise_tool_error
 
 logger = logging.getLogger(__name__)
 
+AnalysisType = Literal["summary", "transcript", "topics", "quotes", "full"]
+
 ANALYSIS_DIR = Path.home() / ".instagram-mcp" / "gemini_analysis"
 
 
@@ -79,9 +81,7 @@ def get_gemini_api_key() -> str:
 
 async def analyze_with_gemini(
     video_data: bytes | str,
-    analysis_type: Literal[
-        "summary", "transcript", "topics", "quotes", "full"
-    ] = "full",
+    analysis_type: AnalysisType = "full",
     is_url: bool = False,
 ) -> dict[str, Any]:
     """
@@ -228,9 +228,7 @@ def register_gemini_tools(mcp: FastMCP) -> None:
     )
     async def analyze_reel_with_gemini(
         reel_url: str,
-        analysis_type: Literal[
-            "summary", "transcript", "topics", "quotes", "full"
-        ] = "full",
+    analysis_type: AnalysisType = "full",
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -245,7 +243,6 @@ def register_gemini_tools(mcp: FastMCP) -> None:
 
         Args:
             reel_url: Full Instagram reel URL (e.g., https://www.instagram.com/reel/ABC123/)
-            ctx: FastMCP context for progress reporting
             analysis_type: Type of analysis:
                 - summary: Quick overview (fastest)
                 - transcript: Full transcription
@@ -338,9 +335,7 @@ def register_gemini_tools(mcp: FastMCP) -> None:
     async def bulk_analyze_reels_with_gemini(
         username: str,
         max_reels: int = 5,
-        analysis_type: Literal[
-            "summary", "transcript", "topics", "quotes", "full"
-        ] = "summary",
+    analysis_type: AnalysisType = "summary",
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -351,7 +346,6 @@ def register_gemini_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username (e.g., "instagram", "natgeo")
-            ctx: FastMCP context for progress reporting
             max_reels: Maximum reels to analyze (default: 5)
             analysis_type: Analysis type (default: summary for speed)
 

@@ -37,7 +37,6 @@ def register_search_tools(mcp: FastMCP) -> None:
 
         Args:
             query: Search query (e.g., "john doe", "photographer")
-            ctx: FastMCP context for progress reporting
             max_results: Maximum number of results to return (default 50)
 
         Returns:
@@ -109,7 +108,6 @@ def register_search_tools(mcp: FastMCP) -> None:
 
         Args:
             query: Search query (e.g., "New York", "Paris cafe")
-            ctx: FastMCP context for progress reporting
             max_results: Maximum number of results to return (default 50)
 
         Returns:

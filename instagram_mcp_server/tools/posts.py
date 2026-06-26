@@ -12,9 +12,9 @@ from fastmcp import Context, FastMCP
 from fastmcp.dependencies import CurrentContext
 
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
-from instagram_mcp_server.core.exceptions import AuthenticationError
-from instagram_mcp_server.dependencies import get_ready_extractor, handle_auth_error
+from instagram_mcp_server.dependencies import get_ready_extractor
 from instagram_mcp_server.error_handler import raise_tool_error
+from instagram_mcp_server.tools._guard import tool_guard
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ def register_post_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True, "openWorldHint": True},
         tags={"post", "scraping"},
     )
+    @tool_guard("get_post_details")
     async def get_post_details(
         post_url: str,
         include_comments: bool = False,
@@ -50,39 +51,29 @@ def register_post_tools(mcp: FastMCP) -> None:
         Args:
             post_url: Full Instagram post URL
             include_comments: Whether to include comments in the response
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with post details from the Instagram API.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="get_post_details")
+        extractor = await get_ready_extractor(ctx, tool_name="get_post_details")
 
-            logger.info(
-                "Fetching post details: %s (include_comments=%s)",
-                post_url,
-                include_comments,
-            )
+        logger.info(
+            "Fetching post details: %s (include_comments=%s)",
+            post_url,
+            include_comments,
+        )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Fetching post details"
-            )
+        await ctx.report_progress(
+            progress=0, total=100, message="Fetching post details"
+        )
 
-            result = await extractor.get_post_details(
-                post_url, include_comments=include_comments
-            )
+        result = await extractor.get_post_details(
+            post_url, include_comments=include_comments
+        )
 
-            await ctx.report_progress(progress=100, total=100, message="Complete")
+        await ctx.report_progress(progress=100, total=100, message="Complete")
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "get_post_details")
-        except Exception as e:
-            raise_tool_error(e, "get_post_details")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -90,6 +81,7 @@ def register_post_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True, "openWorldHint": True},
         tags={"post", "scraping", "location"},
     )
+    @tool_guard("get_location_posts")
     async def get_location_posts(
         location_id: str,
         max_posts: int = 50,
@@ -103,41 +95,31 @@ def register_post_tools(mcp: FastMCP) -> None:
 
         Args:
             location_id: Instagram location ID
-            ctx: FastMCP context for progress reporting
             max_posts: Maximum number of posts to load (default 50)
 
         Returns:
             Dict with url, sections (name -> raw text), references (post links),
             and total_posts count.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="get_location_posts")
+        extractor = await get_ready_extractor(ctx, tool_name="get_location_posts")
 
-            logger.info(
-                "Fetching location posts: %s (max_posts=%s)",
-                location_id,
-                max_posts,
-            )
+        logger.info(
+            "Fetching location posts: %s (max_posts=%s)",
+            location_id,
+            max_posts,
+        )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Fetching location posts"
-            )
+        await ctx.report_progress(
+            progress=0, total=100, message="Fetching location posts"
+        )
 
-            result = await extractor.get_location_posts(
-                location_id, max_posts=max_posts
-            )
+        result = await extractor.get_location_posts(
+            location_id, max_posts=max_posts
+        )
 
-            await ctx.report_progress(progress=100, total=100, message="Complete")
+        await ctx.report_progress(progress=100, total=100, message="Complete")
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "get_location_posts")
-        except Exception as e:
-            raise_tool_error(e, "get_location_posts")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -145,6 +127,7 @@ def register_post_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True, "openWorldHint": True},
         tags={"post", "scraping", "hashtag"},
     )
+    @tool_guard("get_hashtag_posts")
     async def get_hashtag_posts(
         hashtag: str,
         max_posts: int = 50,
@@ -158,38 +141,28 @@ def register_post_tools(mcp: FastMCP) -> None:
 
         Args:
             hashtag: Hashtag to search (without the # symbol)
-            ctx: FastMCP context for progress reporting
             max_posts: Maximum number of posts to load (default 50)
 
         Returns:
             Dict with url, sections (name -> raw text), references (post links),
             and total_posts count.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="get_hashtag_posts")
+        extractor = await get_ready_extractor(ctx, tool_name="get_hashtag_posts")
 
-            logger.info(
-                "Fetching hashtag posts: %s (max_posts=%s)",
-                hashtag,
-                max_posts,
-            )
+        logger.info(
+            "Fetching hashtag posts: %s (max_posts=%s)",
+            hashtag,
+            max_posts,
+        )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Fetching hashtag posts"
-            )
+        await ctx.report_progress(
+            progress=0, total=100, message="Fetching hashtag posts"
+        )
 
-            result = await extractor.get_hashtag_posts(
-                hashtag, max_posts=max_posts
-            )
+        result = await extractor.get_hashtag_posts(
+            hashtag, max_posts=max_posts
+        )
 
-            await ctx.report_progress(progress=100, total=100, message="Complete")
+        await ctx.report_progress(progress=100, total=100, message="Complete")
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "get_hashtag_posts")
-        except Exception as e:
-            raise_tool_error(e, "get_hashtag_posts")  # NoReturn
+        return result

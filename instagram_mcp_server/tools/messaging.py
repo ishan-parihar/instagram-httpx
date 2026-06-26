@@ -14,11 +14,11 @@ from pydantic import Field
 from instagram_mcp_server.callbacks import MCPContextProgressCallback
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
 from instagram_mcp_server.core.exceptions import (
-    AuthenticationError,
     InstagramScraperException,
 )
-from instagram_mcp_server.dependencies import get_ready_extractor, handle_auth_error
+from instagram_mcp_server.dependencies import get_ready_extractor
 from instagram_mcp_server.error_handler import raise_tool_error
+from instagram_mcp_server.tools._guard import tool_guard
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True, "openWorldHint": True},
         tags={"messaging", "scraping"},
     )
+    @tool_guard("get_direct_inbox")
     async def get_direct_inbox(
         limit: Annotated[int, Field(ge=1, le=50)] = 20,
         ctx: Context = CurrentContext(),
@@ -40,32 +41,22 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         List recent DM conversations from the Instagram direct inbox.
 
         Args:
-            ctx: FastMCP context for progress reporting
             limit: Maximum number of conversations to load (1-50, default 20)
 
         Returns:
             Dict with url, sections (inbox -> raw text), and optional references.
         """
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="get_direct_inbox")
-            logger.info("Fetching DM inbox (limit=%d)", limit)
+        extractor = await get_ready_extractor(ctx, tool_name="get_direct_inbox")
+        logger.info("Fetching DM inbox (limit=%d)", limit)
 
-            callback = MCPContextProgressCallback(ctx)
-            await callback.on_progress("Loading direct inbox", 0)
+        callback = MCPContextProgressCallback(ctx)
+        await callback.on_progress("Loading direct inbox", 0)
 
-            result = await extractor.scrape_dm_inbox(limit=limit)
+        result = await extractor.scrape_dm_inbox(limit=limit)
 
-            await callback.on_progress("Complete", 100)
+        await callback.on_progress("Complete", 100)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "get_direct_inbox")
-        except Exception as e:
-            raise_tool_error(e, "get_direct_inbox")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -73,6 +64,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         annotations={"readOnlyHint": True, "openWorldHint": True},
         tags={"messaging", "scraping"},
     )
+    @tool_guard("get_dm_conversation")
     async def get_dm_conversation(
         thread_id: str | None = None,
         username: str | None = None,
@@ -85,7 +77,6 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         Provide either username or thread_id to identify the conversation.
 
         Args:
-            ctx: FastMCP context for progress reporting
             thread_id: Instagram messaging thread ID
             username: Instagram username of the conversation participant
             limit: Maximum number of messages to load (1-100, default 50)
@@ -101,33 +92,24 @@ def register_messaging_tools(mcp: FastMCP) -> None:
                 "get_dm_conversation",
             )
 
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="get_dm_conversation")
-            logger.info(
-                "Fetching DM conversation: username=%s, thread_id=%s",
-                username,
-                thread_id,
-            )
+        extractor = await get_ready_extractor(ctx, tool_name="get_dm_conversation")
+        logger.info(
+            "Fetching DM conversation: username=%s, thread_id=%s",
+            username,
+            thread_id,
+        )
 
-            callback = MCPContextProgressCallback(ctx)
-            await callback.on_progress("Loading conversation", 0)
+        callback = MCPContextProgressCallback(ctx)
+        await callback.on_progress("Loading conversation", 0)
 
-            result = await extractor.scrape_dm_conversation(
-                thread_id=thread_id,
-                username=username,
-            )
+        result = await extractor.scrape_dm_conversation(
+            thread_id=thread_id,
+            username=username,
+        )
 
-            await callback.on_progress("Complete", 100)
+        await callback.on_progress("Complete", 100)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "get_dm_conversation")
-        except Exception as e:
-            raise_tool_error(e, "get_dm_conversation")  # NoReturn
+        return result
 
     @mcp.tool(
         timeout=TOOL_TIMEOUT_SECONDS,
@@ -135,6 +117,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         annotations={"destructiveHint": True, "openWorldHint": True},
         tags={"messaging", "actions"},
     )
+    @tool_guard("send_dm")
     async def send_dm(
         username: str,
         message: str,
@@ -150,7 +133,6 @@ def register_messaging_tools(mcp: FastMCP) -> None:
             username: Instagram username of the recipient
             message: The message text to send
             confirm_send: Must be True to send the message
-            ctx: FastMCP context for progress reporting
 
         Returns:
             Dict with url, status, sent (bool), and optional message.
@@ -163,23 +145,14 @@ def register_messaging_tools(mcp: FastMCP) -> None:
                 "message": "confirm_send must be True to send a message",
             }
 
-        try:
-            extractor = await get_ready_extractor(ctx, tool_name="send_dm")
-            logger.info("Sending DM to %s (confirm_send=%s)", username, confirm_send)
+        extractor = await get_ready_extractor(ctx, tool_name="send_dm")
+        logger.info("Sending DM to %s (confirm_send=%s)", username, confirm_send)
 
-            callback = MCPContextProgressCallback(ctx)
-            await callback.on_progress("Sending message", 0)
+        callback = MCPContextProgressCallback(ctx)
+        await callback.on_progress("Sending message", 0)
 
-            result = await extractor.send_dm(username, message)
+        result = await extractor.send_dm(username, message)
 
-            await callback.on_progress("Complete", 100)
+        await callback.on_progress("Complete", 100)
 
-            return result
-
-        except AuthenticationError as e:
-            try:
-                await handle_auth_error(e, ctx)
-            except Exception as relogin_exc:
-                raise_tool_error(relogin_exc, "send_dm")
-        except Exception as e:
-            raise_tool_error(e, "send_dm")  # NoReturn
+        return result

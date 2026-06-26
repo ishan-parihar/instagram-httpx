@@ -120,7 +120,6 @@ def register_transcription_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username (e.g., "instagram", "natgeo")
-            ctx: FastMCP context for progress reporting
             max_reels: Maximum reels to transcribe (default: 10)
             keep_videos: Keep downloaded video files (default: False)
 
@@ -279,7 +278,6 @@ def register_transcription_tools(mcp: FastMCP) -> None:
 
         Args:
             reel_url: Full Instagram reel URL (e.g., https://www.instagram.com/reel/ABC123/)
-            ctx: FastMCP context for progress reporting
             keep_video: Keep downloaded video file (default: False)
 
         Returns:
