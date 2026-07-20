@@ -150,6 +150,20 @@ def load_from_args(config: AppConfig) -> AppConfig:
         help="Clear stored Instagram profile",
     )
 
+    # AXI §8/§9: tool discovery and introspection
+    parser.add_argument(
+        "--list-tools",
+        action="store_true",
+        help="List all available MCP tools and exit",
+    )
+
+    parser.add_argument(
+        "--tool-info",
+        type=str,
+        metavar="TOOL",
+        help="Show details for a specific tool and exit",
+    )
+
     parser.add_argument(
         "--user-data-dir",
         type=str,
@@ -192,6 +206,12 @@ def load_from_args(config: AppConfig) -> AppConfig:
 
     if args.logout:
         config.server.logout = True
+
+    if args.list_tools:
+        config.server.list_tools = True
+
+    if args.tool_info:
+        config.server.tool_info = args.tool_info
 
     if args.user_data_dir:
         config.cookie.profile_dir = args.user_data_dir

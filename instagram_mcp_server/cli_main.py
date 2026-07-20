@@ -167,6 +167,14 @@ def main() -> None:
     if config.is_interactive:
         print(json.dumps({"bin": "instagram-httpx-mcp", "version": version, "description": "Instagram MCP server with browser automation"}))
 
+    # Handle --list-tools flag (AXI §8 content-first)
+    if config.server.list_tools:
+        list_tools_and_exit()
+
+    # Handle --tool-info flag (AXI §9 contextual disclosure)
+    if config.server.tool_info:
+        tool_info_and_exit(config.server.tool_info)
+
     try:
         # Handle --logout flag
         if config.server.logout:
@@ -222,3 +230,57 @@ if __name__ == "__main__":
     except Exception as e:
         print(json.dumps({"error": f"Error running MCP server: {e}"}))
         exit_gracefully(1)
+
+
+def list_tools_and_exit() -> None:
+    """List all available MCP tools and exit (AXI §8 content-first)."""
+    tools = [
+        ("ias_get_user_profile", "Get Instagram user profile information"),
+        ("ias_get_user_stories", "Get user's active stories"),
+        ("ias_get_user_highlights", "Get user's highlight reels"),
+        ("ias_get_media_feed", "Get user's media feed"),
+        ("ias_get_media_detail", "Get detailed info for a specific post"),
+        ("ias_get_media_comments", "Get comments on a post"),
+        ("ias_get_user_reels", "Get user's Reels videos"),
+        ("ias_search_users", "Search for Instagram users"),
+        ("ias_get_followers", "Get user's followers list"),
+        ("ias_get_following", "Get user's following list"),
+        ("ias_send_direct_message", "Send a direct message to a user"),
+        ("ias_get_direct_messages", "Get direct message threads"),
+        ("ias_create_post_container", "Create a media container for posting"),
+        ("ias_publish_media", "Publish a media container to feed"),
+        ("ias_like_media", "Like a post"),
+        ("ias_comment_on_media", "Comment on a post"),
+    ]
+    print(f"tools[{len(tools)}]{{name,description}}:")
+    for name, desc in tools:
+        print(f"  {name},{desc}")
+    print()
+    print("help[2]:")
+    print("  Run `instagram-httpx-mcp --tool-info <name>` for details")
+    print("  Run `instagram-httpx-mcp` to start the MCP server")
+    sys.exit(0)
+
+
+def tool_info_and_exit(tool_name: str) -> None:
+    """Show detailed info for a specific tool (AXI §9 contextual disclosure)."""
+    tools_info = {
+        "ias_get_user_profile": {
+            "name": "ias_get_user_profile",
+            "description": "Get Instagram user profile information by username",
+            "parameters": {"username": "string (required)"},
+            "returns": "Profile data including bio, followers, following counts",
+        },
+        "ias_get_media_feed": {
+            "name": "ias_get_media_feed",
+            "description": "Get user's media feed posts",
+            "parameters": {"user_id": "string (required)", "limit": "number (default 20)"},
+            "returns": "Array of media objects with captions, likes, comments",
+        },
+    }
+    if tool_name in tools_info:
+        print(json.dumps(tools_info[tool_name], indent=2))
+    else:
+        valid = list(tools_info.keys())
+        axi_error(f"Unknown tool: '{tool_name}'", f"Valid tools: {', '.join(valid)}")
+    sys.exit(0)

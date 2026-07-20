@@ -38,6 +38,8 @@ class ServerConfig:
     login: bool = False
     status: bool = False
     logout: bool = False
+    list_tools: bool = False
+    tool_info: str | None = None
     host: str = "127.0.0.1"
     port: int = 8000
     path: str = "/mcp"
