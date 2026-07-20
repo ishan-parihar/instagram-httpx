@@ -337,3 +337,5 @@ Licensed under the [Apache 2.0 License](LICENSE).
 Built with [FastMCP](https://gofastmcp.com/) and [httpx](https://www.python-httpx.org/).
 
 Use in accordance with [Instagram's Terms of Use](https://help.instagram.com/581066165581870). Web scraping may violate Instagram's terms. This tool is for personal use only.
+---
+Developed by [Ishan Parihar](https://github.com/ishan-parihar) — If you find this useful, [consider supporting](https://rzp.io/rzp/ishan-parihar)
