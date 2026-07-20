@@ -1,11 +1,9 @@
 """Instagram MCP Server main CLI application entry point."""
+import json
 
 import asyncio
-import logging
 import sys
-from typing import Literal
 
-import inquirer
 import httpx
 
 from instagram_mcp_server.authentication import clear_auth_state
@@ -29,26 +27,6 @@ from instagram_mcp_server.session_state import (
 )
 from instagram_mcp_server.setup import run_profile_creation
 
-logger = logging.getLogger(__name__)
-
-
-def choose_transport_interactive() -> Literal["stdio", "streamable-http"]:
-    questions = [
-        inquirer.List(
-            "transport",
-            message="Choose mcp transport mode",
-            choices=[
-                ("stdio (Default CLI mode)", "stdio"),
-                ("streamable-http (HTTP server mode)", "streamable-http"),
-            ],
-            default="stdio",
-        )
-    ]
-    answers = inquirer.prompt(questions)
-    if not answers:
-        raise KeyboardInterrupt("Transport selection cancelled by user")
-    return answers["transport"]
-
 
 def clear_profile_and_exit() -> None:
     """Clear Instagram profile and exit."""
@@ -64,26 +42,13 @@ def clear_profile_and_exit() -> None:
         or portable_cookie_path(profile_dir).exists()
         or source_state_path(profile_dir).exists()
     ):
-        print("No authentication state found")
-        print("Nothing to clear.")
-        sys.exit(0)
-
-    print(f"Clear Instagram authentication state from {profile_dir.parent}?")
-    try:
-        confirmation = (
-            input("Are you sure you want to clear the profile? (y/N): ").strip().lower()
-        )
-        if confirmation not in ("y", "yes"):
-            print("Operation cancelled")
-            sys.exit(0)
-    except KeyboardInterrupt:
-        print("\nOperation cancelled")
+        print(json.dumps({"status": "nothing_to_clear", "message": "No authentication state found"}))
         sys.exit(0)
 
     if clear_auth_state(profile_dir):
-        print("Authentication state cleared successfully!")
+        print(json.dumps({"status": "success", "message": "Authentication state cleared"}))
     else:
-        print("Failed to clear authentication state")
+        print(json.dumps({"status": "error", "message": "Failed to clear authentication state"}))
         sys.exit(1)
     sys.exit(0)
 
@@ -113,27 +78,25 @@ def profile_info_and_exit() -> None:
     profile_dir = get_profile_dir()
     cookies_path = portable_cookie_path(profile_dir)
     source_state = load_source_state(profile_dir)
-
     if not source_state or not profile_exists(profile_dir) or not cookies_path.exists():
-        print(f"No valid source session found at {profile_dir}")
-        print("   Run with --login to create a source session")
+        print(json.dumps({"status": "error", "message": f"No valid source session at {profile_dir}", "help": "Run with --login to create a source session"}))
         sys.exit(1)
 
-    print(f"Profile directory: {profile_dir}")
-    print(f"Runtime ID: {get_runtime_id()}")
+    out = {"profile_dir": str(profile_dir), "runtime_id": get_runtime_id()}
     if source_state:
-        print(f"Source runtime: {source_state.source_runtime_id}")
-        print(f"Login generation: {source_state.login_generation}")
+        out["source_runtime"] = source_state.source_runtime_id
+        out["login_generation"] = source_state.login_generation
 
-    # Validate session by making a test API call
     valid = asyncio.run(_check_session_api())
 
     if valid:
-        print("Session is valid")
+        out["status"] = "valid"
+        print(json.dumps(out))
         sys.exit(0)
 
-    print("Session expired or invalid")
-    print("   Run with --login to re-authenticate")
+    out["status"] = "expired"
+    out["help"] = "Run with --login to re-authenticate"
+    print(json.dumps(out))
     sys.exit(1)
 
 
@@ -160,13 +123,8 @@ async def _check_session_api() -> bool:
                 "?username=instagram"
             )
             data = resp.json()
-            if resp.status_code == 200 and data.get("status") == "ok":
-                print("Instagram session is valid")
-                return True
-            print(f"Instagram API returned: {resp.status_code} - {data}")
-            return False
-    except Exception as e:
-        print(f"Session check failed: {e}")
+            return resp.status_code == 200 and data.get("status") == "ok"
+    except Exception:
         return False
 
 
@@ -207,10 +165,7 @@ def main() -> None:
     version = get_version()
 
     if config.is_interactive:
-        print(f"Instagram MCP Server v{version}")
-        print("=" * 40)
-
-    logger.info(f"Instagram MCP Server v{version}")
+        print(json.dumps({"bin": "instagram-httpx-mcp", "version": version, "description": "Instagram MCP server with browser automation"}))
 
     try:
         # Handle --logout flag
@@ -225,14 +180,10 @@ def main() -> None:
         if config.server.status:
             profile_info_and_exit()
 
-        logger.debug(f"Server configuration: {config}")
-
         try:
             transport = config.server.transport
 
-            if config.is_interactive and not config.server.transport_explicitly_set:
-                print("\nServer ready! Choose transport mode:")
-                transport = choose_transport_interactive()
+            # AXI §6: No interactive prompts — use --transport flag instead
 
             mcp = create_mcp_server()
 
@@ -249,9 +200,7 @@ def main() -> None:
         except KeyboardInterrupt:
             exit_gracefully(0)
         except Exception as e:
-            logger.exception(f"Server runtime error: {e}")
-            if config.is_interactive:
-                print(f"\nServer error: {e}")
+            print(json.dumps({"error": f"Server runtime error: {e}"}))
             exit_gracefully(1)
     finally:
         teardown_trace_logging(keep_traces=False)
@@ -271,8 +220,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         exit_gracefully(0)
     except Exception as e:
-        logger.exception(
-            f"Error running MCP server: {e}",
-            extra={"exception_type": type(e).__name__, "exception_message": str(e)},
-        )
+        print(json.dumps({"error": f"Error running MCP server: {e}"}))
         exit_gracefully(1)
