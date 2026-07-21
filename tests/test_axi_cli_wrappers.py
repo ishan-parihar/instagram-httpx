@@ -118,13 +118,13 @@ class TestToolInfo:
         data = json.loads(out)
         assert "username" in data["parameters"]
 
-    def test_tool_info_media_feed_has_user_id_param(self, capsys):
-        """ias_get_media_feed should require a user_id parameter."""
+    def test_tool_info_media_feed_has_username_param(self, capsys):
+        """ias_get_media_feed should require a username parameter."""
         with pytest.raises(SystemExit):
             tool_info_and_exit("ias_get_media_feed")
         out = capsys.readouterr().out
         data = json.loads(out)
-        assert "user_id" in data["parameters"]
+        assert "username" in data["parameters"]
 
     def test_tool_info_unknown_tool_exits_with_code_2(self, capsys):
         """Unknown tool should exit with code 2 (AXI §6 structured error)."""

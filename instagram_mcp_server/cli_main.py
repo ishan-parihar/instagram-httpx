@@ -272,19 +272,103 @@ def axi_error(msg: str, hint: str = None) -> None:
 
 
 def tool_info_and_exit(tool_name: str) -> None:
-    """Show detailed info for a specific tool (AXI §9 contextual disclosure)."""
+    """Show detailed info for a specific tool (AXI S9 contextual disclosure)."""
     tools_info = {
         "ias_get_user_profile": {
             "name": "ias_get_user_profile",
             "description": "Get Instagram user profile information by username",
+            "parameters": {"username": "string (required)", "sections": "string (optional, comma-separated: posts,reels,tagged,followers,following)"},
+            "returns": "Profile data including bio, followers, following, and optional sections",
+        },
+        "ias_get_user_stories": {
+            "name": "ias_get_user_stories",
+            "description": "Get user active stories",
             "parameters": {"username": "string (required)"},
-            "returns": "Profile data including bio, followers, following counts",
+            "returns": "Array of story objects with media_url, timestamp, expires_at",
+        },
+        "ias_get_user_highlights": {
+            "name": "ias_get_user_highlights",
+            "description": "Get user story highlight reels",
+            "parameters": {"username": "string (required)"},
+            "returns": "Array of highlight objects with title, cover_url, highlight_id",
         },
         "ias_get_media_feed": {
             "name": "ias_get_media_feed",
-            "description": "Get user's media feed posts",
-            "parameters": {"user_id": "string (required)", "limit": "number (default 20)"},
-            "returns": "Array of media objects with captions, likes, comments",
+            "description": "Get user media feed posts",
+            "parameters": {"username": "string (required)", "max_posts": "number (default 50)"},
+            "returns": "Array of media objects with id, shortcode, url, thumbnail, media_type",
+        },
+        "ias_get_media_detail": {
+            "name": "ias_get_media_detail",
+            "description": "Get detailed info for a specific post",
+            "parameters": {"post_url": "string (required)", "include_comments": "boolean (default false)"},
+            "returns": "Post details with caption, engagement, media URLs, location, tags",
+        },
+        "ias_get_media_comments": {
+            "name": "ias_get_media_comments",
+            "description": "Get comments on a post",
+            "parameters": {"post_url": "string (required)", "limit": "number (default 50)"},
+            "returns": "Array of comment objects with author, text, timestamp",
+        },
+        "ias_get_user_reels": {
+            "name": "ias_get_user_reels",
+            "description": "Get user Reels videos",
+            "parameters": {"username": "string (required)", "max_reels": "number (default 50)"},
+            "returns": "Array of reel objects with id, shortcode, url, thumbnail, view_count",
+        },
+        "ias_search_users": {
+            "name": "ias_search_users",
+            "description": "Search for Instagram users",
+            "parameters": {"query": "string (required)", "max_results": "number (default 50)"},
+            "returns": "Array of user objects with username, full_name, profile_pic_url",
+        },
+        "ias_get_followers": {
+            "name": "ias_get_followers",
+            "description": "Get user followers list",
+            "parameters": {"username": "string (required)"},
+            "returns": "Array of follower objects with username, full_name",
+        },
+        "ias_get_following": {
+            "name": "ias_get_following",
+            "description": "Get user following list",
+            "parameters": {"username": "string (required)"},
+            "returns": "Array of following objects with username, full_name",
+        },
+        "ias_send_direct_message": {
+            "name": "ias_send_direct_message",
+            "description": "Send a direct message to a user",
+            "parameters": {"username": "string (required)", "message": "string (required)", "confirm_send": "boolean (required, must be true)"},
+            "returns": "Status object with sent flag and message confirmation",
+        },
+        "ias_get_direct_messages": {
+            "name": "ias_get_direct_messages",
+            "description": "Get direct message threads",
+            "parameters": {"username": "string (optional)", "thread_id": "string (optional)", "limit": "number (default 50)"},
+            "returns": "Array of message objects with sender, text, timestamp",
+        },
+        "ias_create_post_container": {
+            "name": "ias_create_post_container",
+            "description": "Create a media container for posting",
+            "parameters": {"caption": "string (required)", "media_url": "string (required)"},
+            "returns": "Container ID for publishing",
+        },
+        "ias_publish_media": {
+            "name": "ias_publish_media",
+            "description": "Publish a media container to feed",
+            "parameters": {"container_id": "string (required)"},
+            "returns": "Published post status with post URL",
+        },
+        "ias_like_media": {
+            "name": "ias_like_media",
+            "description": "Like a post",
+            "parameters": {"post_url": "string (required)"},
+            "returns": "Status object with like confirmation",
+        },
+        "ias_comment_on_media": {
+            "name": "ias_comment_on_media",
+            "description": "Comment on a post",
+            "parameters": {"post_url": "string (required)", "comment": "string (required)", "confirm_post": "boolean (required, must be true)"},
+            "returns": "Status object with comment confirmation",
         },
     }
     if tool_name in tools_info:
