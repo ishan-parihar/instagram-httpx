@@ -262,6 +262,15 @@ def list_tools_and_exit() -> None:
     sys.exit(0)
 
 
+def axi_error(msg: str, hint: str = None) -> None:
+    """Print structured error to stdout (AXI §6) and exit with code 2."""
+    out = {"error": msg}
+    if hint:
+        out["help"] = hint
+    print(json.dumps(out))
+    sys.exit(2)
+
+
 def tool_info_and_exit(tool_name: str) -> None:
     """Show detailed info for a specific tool (AXI §9 contextual disclosure)."""
     tools_info = {
