@@ -95,8 +95,8 @@ install_uv() {
 }
 
 # ── 3. Locate or clone the repo ──────────────────────────
-REPO_URL="https://github.com/stickerdaniel/instagram-mcp-server"
-REPO_NAME="instagram-mcp-server"
+REPO_URL="https://github.com/ishan-parihar/instagram-httpx"
+REPO_NAME="instagram-httpx"
 
 locate_or_clone_repo() {
     step "Locating repository"
@@ -262,7 +262,7 @@ print_mcp_configs() {
     echo '  "mcpServers": {'
     echo '    "instagram": {'
     echo '      "command": "uvx",'
-    echo '      "args": ["instagram-scraper-mcp"]'
+    echo '      "args": ["instagram-httpx"]'
     echo '    }'
     echo '  }'
     echo '}'

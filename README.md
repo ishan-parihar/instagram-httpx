@@ -1,16 +1,23 @@
 # Instagram HTTPX MCP Server
 
 <p align="left">
-  <a href="https://pypi.org/project/instagram-scraper-mcp/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-scraper-mcp?color=blue" alt="PyPI Version"></a>
-  <a href="https://github.com/stickerdaniel/instagram-mcp-server/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/stickerdaniel/instagram-mcp-server/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
-  <a href="https://github.com/stickerdaniel/instagram-mcp-server/actions/workflows/release.yml" target="_blank"><img src="https://github.com/stickerdaniel/instagram-mcp-server/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
-  <a href="https://github.com/stickerdaniel/instagram-mcp-server/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
+  <a href="https://pypi.org/project/instagram-httpx/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-httpx?color=blue" alt="PyPI Version"></a>
+  <a href="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
+  <a href="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/release.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
+  <a href="https://github.com/ishan-parihar/instagram-httpx/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python Version">
 </p>
 
 **Model Context Protocol server that lets AI assistants interact with Instagram through intelligent automation.**
 
 Access profiles, posts, reels, Business/Creator insights, direct messages, and full-scope content creation with smart aspect ratio processing, modern Instagram specifications, multi-account management, and agent-optimized CLI interface.
+
+## Quick Install
+
+**One-line installation:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-httpx/main/install.sh | bash
+```
 
 ## What It Does
 
@@ -28,7 +35,7 @@ Access profiles, posts, reels, Business/Creator insights, direct messages, and f
 **1. Install**
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-httpx/main/install.sh | bash
 ```
 
 **2. Configure your MCP client**
@@ -40,7 +47,7 @@ Add to your client's MCP config:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-scraper-mcp"]
+      "args": ["instagram-httpx"]
     }
   }
 }
@@ -87,19 +94,19 @@ AI coding agents in headless environments can authenticate by providing Instagra
 **Linux/macOS:**
 ```bash
 export INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
-uvx instagram-scraper-mcp
+uvx instagram-httpx
 ```
 
 **Windows (PowerShell):**
 ```powershell
 $env:INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
-uvx instagram-scraper-mcp
+uvx instagram-httpx
 ```
 
 ### Option B: Pass cookies via file
 
 ```bash
-uvx instagram-scraper-mcp --cookies-file /path/to/cookies.json
+uvx instagram-httpx --cookies-file /path/to/cookies.json
 ```
 
 ### How to get cookies
@@ -164,7 +171,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-scraper-mcp"]
+      "args": ["instagram-httpx"]
     }
   }
 }
@@ -177,7 +184,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-scraper-mcp"]
+      "args": ["instagram-httpx"]
     }
   }
 }
@@ -190,7 +197,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-scraper-mcp"]
+      "args": ["instagram-httpx"]
     }
   }
 }
@@ -338,8 +345,8 @@ The server uses a hybrid approach:
 |----------|-------------|
 | **First run** | Cookie extraction window opens. Complete sign-in (including 2FA if needed). Session saved. |
 | **Subsequent runs** | Cookies loaded from `~/.instagram-mcp/profile/` automatically. |
-| **Session expired** | Re-run `uvx instagram-scraper-mcp --login` to re-authenticate. |
-| **Clear session** | Run `uvx instagram-scraper-mcp --logout` to remove stored cookies. |
+| **Session expired** | Re-run `uvx instagram-httpx --login` to re-authenticate. |
+| **Clear session** | Run `uvx instagram-httpx --logout` to remove stored cookies. |
 
 > Instagram may request login confirmation on your mobile app for new sessions. If you encounter a captcha, use `--login` to solve it manually in the opened browser.
 

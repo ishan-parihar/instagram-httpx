@@ -1,5 +1,5 @@
 [project]
-name = "instagram-scraper-mcp"
+name = "instagram-httpx"
 version = "0.9.0"
 description = "MCP server for Instagram profile, posts, insights, messaging, and content posting with Claude AI integration. Supports user profiles, Business/Creator insights, search, DMs, account actions, and media posting (photos, videos, carousels, stories, reels) via web scraping and private API."
 readme = "README.md"
@@ -57,15 +57,15 @@ transcription = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/stickerdaniel/instagram-mcp-server"
-Documentation = "https://github.com/stickerdaniel/instagram-mcp-server#readme"
-Repository = "https://github.com/stickerdaniel/instagram-mcp-server"
-Issues = "https://github.com/stickerdaniel/instagram-mcp-server/issues"
-Changelog = "https://github.com/stickerdaniel/instagram-mcp-server/releases"
+Homepage = "https://github.com/ishan-parihar/instagram-httpx"
+Documentation = "https://github.com/ishan-parihar/instagram-httpx#readme"
+Repository = "https://github.com/ishan-parihar/instagram-httpx"
+Issues = "https://github.com/ishan-parihar/instagram-httpx/issues"
+Changelog = "https://github.com/ishan-parihar/instagram-httpx/releases"
 
 [project.scripts]
 instagram-mcp-server = "instagram_mcp_server.cli_main:main"
-instagram-scraper-mcp = "instagram_mcp_server.cli_main:main"
+instagram-httpx = "instagram_mcp_server.cli_main:main"
 instagram-launch-brave = "instagram_mcp_server.scripts.launch_brave:main"
 
 [build-system]
