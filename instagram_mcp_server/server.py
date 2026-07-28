@@ -56,7 +56,7 @@ async def api_lifespan(app: FastMCP) -> AsyncIterator[dict[str, Any]]:
 def create_mcp_server() -> FastMCP:
     """Create and configure the MCP server with all Instagram tools."""
     mcp = FastMCP(
-        "instagram_scraper",
+        "instagram_httpx",
         lifespan=api_lifespan,
         mask_error_details=True,
     )

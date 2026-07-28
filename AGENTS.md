@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Tests: `uv run pytest` (with coverage: `uv run pytest --cov`)
 - Pre-commit: `uv run pre-commit install` then `uv run pre-commit run --all-files`
 - Run server locally: `uv run -m instagram_mcp_server --no-headless`
-- Run via uvx (PyPI/package verification only): `uvx instagram-scraper-mcp`
+- Run via uvx (PyPI/package verification only): `uvx instagram-httpx`
 - Docker build: `docker build -t instagram-mcp-server .`
 - Install browser: `uv run patchright install chromium`
 
@@ -67,7 +67,7 @@ gt submit                        # merge PR to trigger release workflow
 
 The CI release workflow automatically updates `manifest.json` and `docker-compose.yml` with the new version — do not update them manually.
 
-After the workflow completes, file a PR in the MCP registry to update the version for `instagram-scraper-mcp`.
+After the workflow completes, file a PR in the MCP registry to update the version for `instagram-httpx`.
 
 ## Commit Messages
 

@@ -748,7 +748,7 @@ from instagram_mcp_server.tools.posting_tools import register_posting_tools
 def create_mcp_server() -> FastMCP:
     """Create and configure the MCP server with all Instagram tools."""
     mcp = FastMCP(
-        "instagram_scraper",
+        "instagram_httpx",
         lifespan=api_lifespan,
         mask_error_details=True,
     )
