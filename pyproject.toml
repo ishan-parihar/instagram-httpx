@@ -41,9 +41,7 @@ dependencies = [
     "fastmcp>=3.0.0",
     "httpx>=0.28.1",
     "inquirer>=3.4.0",
-    "google-genai>=1.0.0",
     "python-dotenv>=1.1.1",
-    "ffmpeg-python>=0.2.0",
     "instagrapi>=2.5.0",
     "Pillow>=10.0.0",
     "moviepy>=1.0.0",
@@ -51,9 +49,16 @@ dependencies = [
 
 [project.optional-dependencies]
 transcription = [
-    # Requires the 'caption' CLI tool (Whisper-based speech-to-text).
-    # Install separately: https://github.com/oliverguhr/ caption
-    # Alternative: Use analyze_reel_with_gemini for AI transcription without local deps.
+    # Requires conda environment 'whisper-hindi' with whisper_timestamped
+    # Set INSTAGRAM_MCP_ENABLE_TRANSCRIPTION=1 to enable
+    "ffmpeg-python>=0.2.0",
+]
+gemini = [
+    "google-genai>=1.0.0",
+    # Requires GEMINI_API_KEY environment variable
+]
+all = [
+    "instagram-httpx[transcription,gemini]",
 ]
 
 [project.urls]

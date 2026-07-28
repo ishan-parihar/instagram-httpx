@@ -26,8 +26,6 @@ from instagram_mcp_server.tools.posts import register_post_tools as register_scr
 from instagram_mcp_server.tools.search import register_search_tools
 from instagram_mcp_server.tools.actions import register_action_tools
 from instagram_mcp_server.tools.messaging import register_messaging_tools
-from instagram_mcp_server.tools.transcription import register_transcription_tools
-from instagram_mcp_server.tools.gemini_analysis import register_gemini_tools
 from instagram_mcp_server.tools.posting_tools import register_posting_tools
 from instagram_mcp_server.tools.multi_account_tools import register_multi_account_tools
 from instagram_mcp_server.tools.feed_tools import register_feed_tools
@@ -68,12 +66,12 @@ def create_mcp_server() -> FastMCP:
     register_messaging_tools(mcp)
     register_search_tools(mcp)
     register_action_tools(mcp)
-    register_transcription_tools(mcp)
-    register_gemini_tools(mcp)
     register_multi_account_tools(mcp)
     register_feed_tools(mcp)
     register_trigger_tools(mcp)
     register_posting_tools(mcp)
+
+    # Optional tools removed - transcription and gemini analysis moved to external packages
 
     # Register session management tool
     @mcp.tool(
