@@ -1,4 +1,4 @@
-# Instagram MCP Server
+# Instagram HTTPX MCP Server
 
 <p align="left">
   <a href="https://pypi.org/project/instagram-scraper-mcp/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-scraper-mcp?color=blue" alt="PyPI Version"></a>
@@ -8,7 +8,20 @@
   <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python Version">
 </p>
 
-Model Context Protocol server that lets AI assistants (Claude, Cursor, Windsurf, etc.) interact with Instagram. Access profiles, posts, reels, Business/Creator insights, direct messages, and account actions with zero UX interference.
+**Model Context Protocol server that lets AI assistants interact with Instagram through intelligent automation.**
+
+Access profiles, posts, reels, Business/Creator insights, direct messages, and full-scope content creation with smart aspect ratio processing, modern Instagram specifications, multi-account management, and agent-optimized CLI interface.
+
+## What It Does
+
+- **Smart Content Processing**: Automatic aspect ratio detection and conversion (4:5, 1:1, 1.91:1, 9:16) with letterbox/crop modes
+- **Modern Instagram Specs**: Extended video durations (180s feed/reels, 60s stories) and latest format support
+- **Multi-Account Management**: Switch between multiple Instagram accounts with posting limits and cooldowns
+- **Comment-Based DM Automation**: Trigger system for automated responses to post comments
+- **Feed Browsing**: Home feed, discover feed, and user timeline access
+- **Full Content Creation**: Photos, videos, carousels, stories, and reels with location/tagging
+- **Agent-Optimized CLI**: AXI-compliant interface with TOON output and session integrations
+- **Production Ready**: Systemd persistence, error handling, and comprehensive validation
 
 ## Quick Start
 
@@ -20,7 +33,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 **2. Configure your MCP client**
 
-Add to your client's MCP config (see [full configs below](#mcp-client-configuration)):
+Add to your client's MCP config:
 
 ```json
 {
@@ -37,96 +50,110 @@ Add to your client's MCP config (see [full configs below](#mcp-client-configurat
 
 Restart your MCP client. On the first Instagram tool call, a login window opens if no session exists. Log in once, and cookies persist across restarts.
 
+## Smart Processing
+
+The server automatically handles Instagram's complex media specifications:
+
+- **Auto Aspect Ratio Detection**: Converts any media to the closest valid Instagram ratio
+- **Media-Type-Aware Processing**: Uses letterbox for stories/reels (preserves content), crop for feed (clean aesthetic)
+- **Extended Duration Support**: 180s for feed/reels, 60s for stories (vs old 60s/15s limits)
+- **Landscape Format Support**: 1.91:1 cinematic format for feed posts
+- **Flexible Processing Modes**: Auto, fit (letterbox), and crop (center crop) options
+
+**Example:**
+```python
+# Auto-detect best ratio and processing mode
+result = await upload_photo(
+    image_path="photo.jpg",
+    caption="Smart processed",
+    aspect_ratio="auto",  # Auto-detect closest valid ratio
+    fit_mode="auto"       # Auto-select best processing mode
+)
+```
+
 ## AI Agent Setup
 
-AI coding agents (Claude Code, Cursor, Windsurf, etc.) that run in headless or non-interactive environments can authenticate by providing Instagram session cookies directly.
+AI coding agents in headless environments can authenticate by providing Instagram session cookies directly.
 
 ### Option A: Set `INSTAGRAM_COOKIES` environment variable (recommended)
-
-Provide cookies as a JSON string at server startup. The server writes them to the profile directory automatically.
 
 ```json
 {
   "sessionid": "your_session_id_value",
-  "csrftoken": "your_csrftoken_value",
-  "ds_user_id": "your_user_id",
-  "ig_did": "your_ig_did_value",
-  "mid": "your_mid_value"
+  "csrftoken": "your_csrf_token_value"
 }
 ```
 
-Only `sessionid` and `csrftoken` are required; the others improve reliability.
-
-**MCP client configuration with env var:**
-
-```json
-{
-  "mcpServers": {
-    "instagram": {
-      "command": "uvx",
-      "args": ["instagram-scraper-mcp"],
-      "env": {
-        "INSTAGRAM_COOKIES": "{\"sessionid\":\"...\",\"csrftoken\":\"...\",\"ds_user_id\":\"...\"}"
-      }
-    }
-  }
-}
+**Linux/macOS:**
+```bash
+export INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
+uvx instagram-scraper-mcp
 ```
 
-### Option B: Write `cookies.json` directly
+**Windows (PowerShell):**
+```powershell
+$env:INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
+uvx instagram-scraper-mcp
+```
 
-Place a JSON cookie file at `~/.instagram-mcp/profile/cookies.json`. The server reads this path on every startup.
-
-**Supported formats:**
-
-| Format | Example |
-|--------|---------|
-| Flat key-value | `{"sessionid": "...", "csrftoken": "..."}` |
-| List of cookie objects | `[{"name": "sessionid", "value": "...", "domain": ".instagram.com"}, ...]` |
-| Server export format | `{"cookies": [{"name": "sessionid", "value": "..."}], "imported_from": "chrome"}` |
-
-Minimum required keys: `sessionid`, `csrftoken`.
+### Option B: Pass cookies via file
 
 ```bash
-mkdir -p ~/.instagram-mcp/profile
-cat > ~/.instagram-mcp/profile/cookies.json << 'EOF'
-{
-  "sessionid": "your_session_id",
-  "csrftoken": "your_csrftoken",
-  "ds_user_id": "your_user_id"
-}
-EOF
-chmod 600 ~/.instagram-mcp/profile/cookies.json
+uvx instagram-scraper-mcp --cookies-file /path/to/cookies.json
 ```
 
 ### How to get cookies
 
-1. Open Instagram in a browser and log in.
-2. Use the browser's DevTools (`F12` → Application → Cookies → instagram.com) or a cookie editor extension.
-3. Export the cookies as JSON. Required: `sessionid`, `csrftoken`.
-4. Pass them to the server via env var or file.
+1. Open Instagram in a browser and log in
+2. Use browser DevTools (`F12` → Application → Cookies → instagram.com)
+3. Export cookies as JSON (required: `sessionid`, `csrftoken`)
+4. Pass to server via env var or file
 
-> **Note:** Instagram session cookies expire periodically. When tools return `"Instagram session is expired or invalid"`, refresh your cookies and restart the server.
+> **Note:** Instagram session cookies expire periodically. Refresh cookies when tools return session expired errors.
+
+## CLI Interface (AXI-Compliant)
+
+The CLI provides agent-optimized interaction with TOON output and session integrations:
+
+```bash
+# Show home view with live state
+instagram-httpx-mcp
+
+# List available tools
+instagram-httpx-mcp --list-tools
+
+# Tool details
+instagram-httpx-mcp --tool-info ias_get_user_profile
+
+# Session management
+instagram-httpx-mcp --login
+instagram-httpx-mcp --status
+instagram-httpx-mcp --logout
+
+# Agent integrations
+instagram-httpx-mcp --install-hook    # Session hooks for Claude Code/Codex
+instagram-httpx-mcp --install-skill   # Agent skill for auto-discovery
+```
+
+**Session Integration:**
+```bash
+$ instagram-httpx-mcp --install-hook
+status: success
+target: claude_code
+hook: SessionStart -> ~/instagram-httpx-mcp/instagram_mcp_server/__main__.py
+help: Session will now show Instagram MCP state on startup
+```
 
 ## How It Works
 
-The server reads your Instagram session cookies from your browser's cookie store
-(Chrome, Firefox, Edge, Brave, and 10+ others), saves them to `~/.instagram-mcp/profile/`,
-and authenticates directly with Instagram's private-web API.
+The server uses a hybrid approach:
 
-All data fetching uses Instagram's internal API via httpx. No browser is launched
-for scraping. Your primary browser is only accessed for cookie extraction.
-
-## Authentication
-
-| Scenario | What happens |
-|----------|-------------|
-| **First run** | A cookie extraction window opens. Complete sign-in (including 2FA if needed). Your session is saved. |
-| **Subsequent runs** | Cookies loaded from `~/.instagram-mcp/profile/` automatically. |
-| **Session expired** | Re-run `uvx instagram-scraper-mcp --login` to re-authenticate. |
-| **Clear session** | Run `uvx instagram-scraper-mcp --logout` to remove stored cookies. |
-
-> Instagram may request a login confirmation on your mobile app for new sessions. If you encounter a captcha, use `--login` to solve it manually in the opened browser.
+- **Scraping**: Fast httpx-based web scraping for reading content via Instagram's internal API
+- **Posting**: instagrapi library for robust media uploads via Instagram's private API
+- **Smart Processing**: Automatic aspect ratio detection and media optimization
+- **Multi-Account**: Centralized account management with separate sessions and posting limits
+- **Validation**: Comprehensive input validation and Instagram spec compliance
+- **Error Handling**: Instagram-specific error detection and user-friendly messages
 
 ## MCP Client Configuration
 
@@ -184,19 +211,63 @@ for scraping. Your primary browser is only accessed for cookie extraction.
 
 ## Tools
 
-### Profile & Content (6 tools)
-
+### Multi-Account Management
 | Tool | Description |
 |------|-------------|
-| `get_user_profile` | Get profile info. Optional sections: posts, reels, stories, highlights, followers, following |
-| `get_user_posts` | Get structured post data (ID, shortcode, URL, thumbnail, media type, caption, likes, comments, timestamps, carousel children, preview comments) |
-| `get_user_reels` | Get reels with engagement metrics (plays, likes, comments), audio metadata, and thumbnails |
-| `get_user_stories` | Get active stories with media URLs, video URLs, viewer counts, expiry timestamps, and tappable objects |
+| `list_instagram_accounts` | List all configured Instagram accounts |
+| `add_instagram_account` | Add a new Instagram account with session cookies |
+| `import_account_from_browser` | Import Instagram account cookies directly from browser |
+| `switch_active_account` | Switch the active Instagram account for operations |
+| `get_active_account_info` | Get information about the currently active account |
+| `remove_instagram_account` | Remove an Instagram account configuration |
+| `update_account_cookies` | Update cookies for an existing Instagram account |
+
+### Feed Browsing
+| Tool | Description |
+|------|-------------|
+| `get_home_feed` | Get the home feed (posts from followed accounts) |
+| `get_discover_feed` | Get the discover/explore feed with trending content |
+| `get_user_timeline` | Get recent posts from a specific user's timeline |
+
+### Comment-Based DM Automation
+| Tool | Description |
+|------|-------------|
+| `create_dm_trigger` | Create an automated DM trigger for post comments |
+| `list_dm_triggers` | List DM triggers with optional filtering |
+| `get_dm_trigger` | Get details of a specific DM trigger |
+| `update_dm_trigger` | Update an existing DM trigger |
+| `pause_dm_trigger` | Pause a DM trigger (temporarily disable) |
+| `resume_dm_trigger` | Resume a paused DM trigger |
+| `delete_dm_trigger` | Delete a DM trigger |
+| `check_comment_for_triggers` | Check if a comment matches any active triggers |
+| `execute_trigger_dm` | Execute the DM action for a matched trigger |
+| `get_trigger_executions_log` | Get execution history for a specific trigger |
+
+### Content Posting (Smart Processing)
+| Tool | Description |
+|------|-------------|
+| `upload_photo` | Upload photo with smart aspect ratio processing (4:5, 1:1, 1.91:1) |
+| `upload_video` | Upload video with smart processing (180s duration, auto aspect ratio) |
+| `upload_carousel` | Upload carousel (2-10 images) with consistent smart processing |
+| `upload_story` | Upload story with letterbox processing (60s duration, 9:16 format) |
+| `upload_reel` | Upload reel with smart vertical processing (180s duration, 9:16 format) |
+
+**Smart Processing Parameters:**
+- `aspect_ratio`: "auto", "4:5", "1:1", "1.91:1" (feed), "9:16" (stories/reels)
+- `fit_mode`: "auto" (media-type-aware), "fit" (letterbox), "crop" (center crop)
+- `max_duration`: Custom duration limits (up to 180s feed/reels, 60s stories)
+
+### Profile & Content
+| Tool | Description |
+|------|-------------|
+| `get_user_profile` | Get profile info with optional sections (posts, reels, stories, highlights, followers, following) |
+| `get_user_posts` | Get structured post data (ID, shortcode, URL, thumbnail, media type, caption, engagement) |
+| `get_user_reels` | Get reels with engagement metrics (plays, likes, comments) and audio metadata |
+| `get_user_stories` | Get active stories with media URLs, viewer counts, and expiry timestamps |
 | `get_user_highlights` | Get story highlights with titles, cover URLs, and highlight IDs |
-| `get_post_details` | Get detailed post/reel info including caption, engagement, audio, location, usertags, carousel children, sponsor tags, and optional comments |
+| `get_post_details` | Get detailed post/reel info including caption, engagement, audio, location, and carousel children |
 
-### Search & Discovery (5 tools)
-
+### Search & Discovery
 | Tool | Description |
 |------|-------------|
 | `search_users` | Search for users by name or keywords |
@@ -205,8 +276,7 @@ for scraping. Your primary browser is only accessed for cookie extraction.
 | `get_hashtag_posts` | Get posts for a given hashtag |
 | `get_location_posts` | Get posts tagged at a specific location |
 
-### Messaging & Actions (9 tools)
-
+### Messaging & Actions
 | Tool | Description |
 |------|-------------|
 | `get_direct_inbox` | List recent DM conversations |
@@ -219,123 +289,106 @@ for scraping. Your primary browser is only accessed for cookie extraction.
 | `save_post` | Save a post or reel to a collection |
 | `comment_on_post` | Post a comment on a post or reel |
 
-### Business/Creator Insights (4 tools)
-
-> All require a Business or Creator account (accessed via Professional Dashboard).
-
+### Business/Creator Insights
 | Tool | Description |
 |------|-------------|
-| `get_business_insights` | Get reach, impressions, and engagement metrics |
-| `get_audience_insights` | Get audience demographics |
-| `get_content_insights` | Get content performance data |
-| `get_activity_insights` | Get profile activity metrics |
+| `get_account_insights` | Get account-level insights (impressions, reach, engagement, growth) |
+| `get_content_insights` | Get insights for specific posts/reels (impressions, reach, engagement) |
+| `get_stories_insights` | Get insights for stories (impressions, reach, navigation) |
+| `get_audience_insights` | Get audience demographics (age, gender, location, activity) |
 
-### Transcription (2 tools)
-
-> Requires the `caption` CLI tool (Whisper-based). See [docs/TRANSCRIPTION.md](docs/TRANSCRIPTION.md).
-
+### Utility Tools
 | Tool | Description |
 |------|-------------|
-| `transcribe_user_reels` | Download and transcribe multiple reels to SRT subtitles |
-| `transcribe_reel` | Transcribe a single reel by URL to SRT |
+| `close_session` | Close the current Instagram browser session and clean up resources |
 
-### AI Analysis (2 tools)
+## Content Posting Features
 
-> Requires `GEMINI_API_KEY` environment variable. Uses Google Gemini 2.0 Flash. See [docs/GEMINI_ANALYSIS.md](docs/GEMINI_ANALYSIS.md).
+### Smart Aspect Ratio Processing
+- **Auto Detection**: Automatically finds closest valid Instagram ratio for any input
+- **Media-Type-Aware**: Stories/reels use letterbox (preserve content), feed uses crop (clean aesthetic)
+- **Flexible Modes**: Auto, fit (letterbox/pillarbox), crop (center crop) options
+- **Instagram Ratios**: 4:5 (feed standard), 1:1 (square), 1.91:1 (landscape), 9:16 (stories/reels)
 
-| Tool | Description |
-|------|-------------|
-| `analyze_reel_with_gemini` | Multimodal reel analysis (summary, transcript, topics, quotes) |
-| `bulk_analyze_reels_with_gemini` | Analyze multiple reels with Gemini AI |
+### Extended Video Support
+- **Feed/Reels**: Up to 180 seconds (vs old 60s limit)
+- **Stories**: Up to 60 seconds (vs old 15s limit)
+- **Auto Processing**: Smart aspect ratio conversion and thumbnail generation
+- **Quality Preservation**: Optimized compression while maintaining quality
 
-## Optional Features
+### Advanced Posting Features
+- **Multi-Account Support**: Specify `account_id` to post from any configured account
+- **Location Tagging**: Add Instagram location IDs to posts
+- **User Tagging**: Tag users in posts and stories
+- **Cross-Posting**: Share to Facebook and Threads automatically
+- **Scheduling**: Schedule posts for future times (ISO 8601 timestamps)
+- **Posting Limits**: Built-in daily limits and cooldowns to prevent account restrictions
+- **History Tracking**: All posting attempts logged for audit and analysis
 
-### Gemini AI Analysis
+### Posting Limitations
+- All posting operations require valid Instagram session cookies
+- Daily posting limits enforced (default: 10 posts per account per day)
+- 30-minute cooldown between posts to prevent rate limiting
+- Media files automatically processed to meet Instagram specifications
+- Stories have stricter duration limits (60s vs 180s for feed videos)
 
-Set your API key before starting the server:
+## Authentication
 
-```bash
-export GEMINI_API_KEY="your-api-key"
-uvx instagram-scraper-mcp
-```
+| Scenario | What happens |
+|----------|-------------|
+| **First run** | Cookie extraction window opens. Complete sign-in (including 2FA if needed). Session saved. |
+| **Subsequent runs** | Cookies loaded from `~/.instagram-mcp/profile/` automatically. |
+| **Session expired** | Re-run `uvx instagram-scraper-mcp --login` to re-authenticate. |
+| **Clear session** | Run `uvx instagram-scraper-mcp --logout` to remove stored cookies. |
 
-### Local Transcription
+> Instagram may request login confirmation on your mobile app for new sessions. If you encounter a captcha, use `--login` to solve it manually in the opened browser.
 
-Install the [`caption`](https://github.com/oliverguhr/caption) CLI tool for local Whisper-based transcription. Alternatively, use `analyze_reel_with_gemini` for AI transcription without local dependencies.
-
-### CDP Mode (Opt-in)
-
-CDP mode is available for cookie extraction. Connect directly to a running
-Chromium-based browser via Chrome DevTools Protocol instead of reading the SQLite
-cookie store directly. This is only relevant for the cookie extraction step, not
-for data fetching.
-
-```bash
-# Start Brave with remote debugging
-brave --remote-debugging-port=9222
-
-# Connect via CLI flag
-uvx instagram-scraper-mcp --cdp
-
-# Or via environment variable
-export INSTAGRAM_USE_CDP_MODE=1
-uvx instagram-scraper-mcp
-```
-
-See [docs/CDP_MODE.md](docs/CDP_MODE.md) for details.
-
-## Docker Setup
-
-The Docker container extracts and profiles cookies on your host, then serves the API.
-
-**1. Create profile (one-time)**
+## Development
 
 ```bash
-uvx instagram-scraper-mcp --login
+# Install dependencies
+uv sync
+
+# Run linting
+uv run ruff check .
+uv run ruff format .
+
+# Type checking
+uv run ty check
+
+# Run tests
+uv run pytest
+
+# Run server locally
+uv run -m instagram_mcp_server --no-headless
+
+# Install browser for cookie extraction
+uv run patchright install chromium
 ```
 
-**2. Configure MCP client**
+## Architecture
 
-```json
-{
-  "mcpServers": {
-    "instagram": {
-      "command": "docker",
-      "args": [
-        "run", "--rm", "-i",
-        "-v", "${HOME}/.instagram-mcp:/home/pwuser/.instagram-mcp",
-        "stickerdaniel/instagram-mcp-server:latest"
-      ]
-    }
-  }
-}
-```
+The server uses a hybrid approach:
+- **Scraping**: Fast httpx-based web scraping for reading content
+- **Posting**: instagrapi library for robust media uploads via Instagram's private API
+- **Smart Processing**: Automatic aspect ratio detection and media optimization
+- **Multi-Account**: Centralized account management with separate sessions
+- **Validation**: Comprehensive input validation and media processing
+- **Error Handling**: Instagram-specific error detection and user-friendly messages
+- **AXI Compliance**: Agent-optimized CLI with TOON output and session integrations
 
-See [docs/docker-hub.md](docs/docker-hub.md) for full Docker documentation including HTTP mode and troubleshooting.
+## Production Readiness
 
-## Troubleshooting
+This server is production-ready for:
+- Multi-account AI agent workflows
+- Automated content scheduling and posting
+- Comment-based DM automation
+- Feed analysis and trend detection
+- Business/Creator insight collection
+- Systemd persistence and deployment
 
-| Issue | Solution |
-|-------|----------|
-| **No cookies found** | Ensure you are logged into Instagram in a supported browser. Run `uvx instagram-scraper-mcp --login` to open the login flow. |
-| **Session expired** | Re-run `uvx instagram-scraper-mcp --login` to create a fresh session. |
-| **Captcha challenge** | Use `--login` to solve it manually in the opened browser. |
-| **Page timeout** | Increase timeout: `--timeout 10000` (or higher for slow connections). |
-| **Multiple Instagram sessions** | Instagram may conflict with concurrent sessions. Log out of other active sessions. |
-| **Session profile location** | Profile stored at `~/.instagram-mcp/profile/`. Use `--logout` to clear. |
+For systemd persistence and production deployment, see the production documentation in the `docs/` directory.
 
-For debug output, add `--log-level DEBUG`.
+## License
 
-## Development & Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for architecture guidelines, development commands, and the contribution workflow. Please [open an issue](https://github.com/stickerdaniel/instagram-mcp-server/issues) before submitting a PR.
-
-## License & Acknowledgements
-
-Licensed under the [Apache 2.0 License](LICENSE).
-
-Built with [FastMCP](https://gofastmcp.com/) and [httpx](https://www.python-httpx.org/).
-
-Use in accordance with [Instagram's Terms of Use](https://help.instagram.com/581066165581870). Web scraping may violate Instagram's terms. This tool is for personal use only.
----
-Developed by [Ishan Parihar](https://github.com/ishan-parihar) — If you find this useful, [consider supporting](https://rzp.io/rzp/ishan-parihar)
+Apache License 2.0

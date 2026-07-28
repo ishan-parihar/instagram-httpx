@@ -164,6 +164,19 @@ def load_from_args(config: AppConfig) -> AppConfig:
         help="Show details for a specific tool and exit",
     )
 
+    # AXI §7: Session integrations
+    parser.add_argument(
+        "--install-hook",
+        action="store_true",
+        help="Install session hooks for Claude Code/Codex (AXI §7)",
+    )
+
+    parser.add_argument(
+        "--install-skill",
+        action="store_true",
+        help="Install agent skill for task-based discovery (AXI §7)",
+    )
+
     parser.add_argument(
         "--user-data-dir",
         type=str,
@@ -212,6 +225,12 @@ def load_from_args(config: AppConfig) -> AppConfig:
 
     if args.tool_info:
         config.server.tool_info = args.tool_info
+
+    if args.install_hook:
+        config.server.install_hook = True
+
+    if args.install_skill:
+        config.server.install_skill = True
 
     if args.user_data_dir:
         config.cookie.profile_dir = args.user_data_dir

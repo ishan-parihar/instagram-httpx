@@ -35,6 +35,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
     @tool_guard("get_direct_inbox")
     async def get_direct_inbox(
         limit: Annotated[int, Field(ge=1, le=50)] = 20,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -42,11 +43,12 @@ def register_messaging_tools(mcp: FastMCP) -> None:
 
         Args:
             limit: Maximum number of conversations to load (1-50, default 20)
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, sections (inbox -> raw text), and optional references.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_direct_inbox")
+        extractor = await get_ready_extractor(ctx, tool_name="get_direct_inbox", account_id=account_id)
         logger.info("Fetching DM inbox (limit=%d)", limit)
 
         callback = MCPContextProgressCallback(ctx)
@@ -69,6 +71,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         thread_id: str | None = None,
         username: str | None = None,
         limit: Annotated[int, Field(ge=1, le=100)] = 50,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -80,6 +83,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
             thread_id: Instagram messaging thread ID
             username: Instagram username of the conversation participant
             limit: Maximum number of messages to load (1-100, default 50)
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, sections (conversation -> raw text), and optional references.
@@ -92,7 +96,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
                 "get_dm_conversation",
             )
 
-        extractor = await get_ready_extractor(ctx, tool_name="get_dm_conversation")
+        extractor = await get_ready_extractor(ctx, tool_name="get_dm_conversation", account_id=account_id)
         logger.info(
             "Fetching DM conversation: username=%s, thread_id=%s",
             username,
@@ -122,6 +126,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
         username: str,
         message: str,
         confirm_send: bool,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -133,6 +138,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
             username: Instagram username of the recipient
             message: The message text to send
             confirm_send: Must be True to send the message
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, sent (bool), and optional message.
@@ -145,7 +151,7 @@ def register_messaging_tools(mcp: FastMCP) -> None:
                 "message": "confirm_send must be True to send a message",
             }
 
-        extractor = await get_ready_extractor(ctx, tool_name="send_dm")
+        extractor = await get_ready_extractor(ctx, tool_name="send_dm", account_id=account_id)
         logger.info("Sending DM to %s (confirm_send=%s)", username, confirm_send)
 
         callback = MCPContextProgressCallback(ctx)

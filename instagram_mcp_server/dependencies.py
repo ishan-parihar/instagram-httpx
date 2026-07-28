@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import NoReturn
+from typing import Any, NoReturn
 
 from fastmcp import Context
 
@@ -33,11 +33,21 @@ async def get_ready_extractor(
     ctx: Context | None,
     *,
     tool_name: str,
+    account_id: str | None = None,
 ) -> InstagramAPIClient:
-    """Run bootstrap gating, then create an authenticated API client."""
+    """Run bootstrap gating, then create an authenticated API client.
+    
+    Args:
+        ctx: MCP context
+        tool_name: Name of the tool being executed
+        account_id: Optional account ID to use for cookie loading
+    
+    Returns:
+        Authenticated InstagramAPIClient instance
+    """
     try:
         await ensure_tool_ready_or_raise(tool_name, ctx)
-        client = _build_api_client()
+        client = _build_api_client(account_id=account_id)
         return client
     except AuthenticationError as e:
         await handle_auth_error(e, ctx)
@@ -45,8 +55,47 @@ async def get_ready_extractor(
         raise_tool_error(e, tool_name)
 
 
-def _build_api_client() -> InstagramAPIClient:
-    """Load cookies from disk and return an :class:`InstagramAPIClient`."""
+def _build_api_client(account_id: str | None = None) -> InstagramAPIClient:
+    """Load cookies from disk and return an :class:`InstagramAPIClient`.
+    
+    Args:
+        account_id: Optional account ID to load cookies for. If not provided,
+                   uses the default/active account or falls back to legacy cookie loading.
+    
+    Returns:
+        Authenticated InstagramAPIClient instance
+    """
+    # Try multi-account cookies first if account_id is specified
+    if account_id:
+        from instagram_mcp_server.multi_account import get_account_cookies
+        
+        cookies = get_account_cookies(account_id)
+        if cookies:
+            logger.info(
+                "API client created from account %s (%d cookies)",
+                account_id,
+                len(cookies),
+            )
+            return InstagramAPIClient(cookies)
+        else:
+            logger.warning(f"Account {account_id} not found, falling back to default")
+    
+    # Try active account if no account_id specified
+    if not account_id:
+        from instagram_mcp_server.multi_account import get_active_account, get_account_cookies
+        
+        active_account = get_active_account()
+        if active_account:
+            cookies = get_account_cookies(active_account.account_id)
+            if cookies:
+                logger.info(
+                    "API client created from active account %s (%d cookies)",
+                    active_account.account_id,
+                    len(cookies),
+                )
+                return InstagramAPIClient(cookies)
+    
+    # Fallback to legacy cookie loading
     profile_dir = get_profile_dir()
     cookie_file = profile_dir / "cookies.json"
 
@@ -81,3 +130,35 @@ def _build_api_client() -> InstagramAPIClient:
         len(cookies),
     )
     return InstagramAPIClient(cookies)
+
+
+async def get_ready_posting_client(
+    ctx: Context | None,
+    *,
+    tool_name: str,
+    account_id: str | None = None,
+) -> Any:
+    """Get a posting client for media upload operations.
+    
+    Args:
+        ctx: MCP context
+        tool_name: Name of the tool being executed
+        account_id: Optional account ID to use for cookie loading
+    
+    Returns:
+        Authenticated PostingClient instance
+    
+    Raises:
+        AuthenticationError: If session is invalid
+        Exception: For other errors
+    """
+    try:
+        from instagram_mcp_server.posting.client import PostingClient
+        
+        await ensure_tool_ready_or_raise(tool_name, ctx)
+        client = PostingClient(account_id=account_id)
+        return client
+    except AuthenticationError as e:
+        await handle_auth_error(e, ctx)
+    except Exception as e:
+        raise_tool_error(e, tool_name)

@@ -1,7 +1,7 @@
 [project]
 name = "instagram-scraper-mcp"
-version = "1.1.0"
-description = "MCP server for Instagram profile, posts, insights, and messaging with Claude AI integration. Supports user profiles, Business/Creator insights, search, DMs, and account actions via web scraping."
+version = "0.9.0"
+description = "MCP server for Instagram profile, posts, insights, messaging, and content posting with Claude AI integration. Supports user profiles, Business/Creator insights, search, DMs, account actions, and media posting (photos, videos, carousels, stories, reels) via web scraping and private API."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 authors = [
@@ -20,6 +20,10 @@ keywords = [
     "claude",
     "social-media",
     "instagram-insights",
+    "instagram-posting",
+    "instagram-upload",
+    "media-posting",
+    "content-creation",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -40,6 +44,9 @@ dependencies = [
     "google-genai>=1.0.0",
     "python-dotenv>=1.1.1",
     "ffmpeg-python>=0.2.0",
+    "instagrapi>=2.5.0",
+    "Pillow>=10.0.0",
+    "moviepy>=1.0.0",
 ]
 
 [project.optional-dependencies]

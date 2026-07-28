@@ -151,7 +151,7 @@ Respond in JSON format with keys: summary, transcript, topics (array), quotes (a
                     parts=[
                         types.Part.from_text(text=prompt),
                         types.Part.from_uri(
-                            file_uri=video_data,
+                            file_uri=str(video_data),
                             mime_type="video/mp4",
                         ),
                     ],
@@ -159,13 +159,14 @@ Respond in JSON format with keys: summary, transcript, topics (array), quotes (a
             ]
         else:
             # Upload video bytes via inline data
+            video_bytes = bytes(video_data) if isinstance(video_data, (bytes, bytearray)) else video_data.encode()
             contents = [
                 types.Content(
                     role="user",
                     parts=[
                         types.Part.from_text(text=prompt),
                         types.Part.from_bytes(
-                            data=video_data,
+                            data=video_bytes,
                             mime_type="video/mp4",
                         ),
                     ],

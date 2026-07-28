@@ -40,6 +40,8 @@ class ServerConfig:
     logout: bool = False
     list_tools: bool = False
     tool_info: str | None = None
+    install_hook: bool = False
+    install_skill: bool = False
     host: str = "127.0.0.1"
     port: int = 8000
     path: str = "/mcp"

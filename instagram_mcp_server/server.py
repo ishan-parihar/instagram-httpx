@@ -14,7 +14,6 @@ from fastmcp.server.lifespan import lifespan
 from instagram_mcp_server.bootstrap import (
     get_runtime_policy,
     initialize_bootstrap,
-    start_background_browser_setup_if_needed,
 )
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
 from instagram_mcp_server.drivers.browser import close_browser
@@ -23,12 +22,16 @@ from instagram_mcp_server.sequential_tool_middleware import (
     SequentialToolExecutionMiddleware,
 )
 from instagram_mcp_server.tools.user import register_user_tools
-from instagram_mcp_server.tools.posts import register_post_tools
+from instagram_mcp_server.tools.posts import register_post_tools as register_scraping_post_tools
 from instagram_mcp_server.tools.search import register_search_tools
 from instagram_mcp_server.tools.actions import register_action_tools
 from instagram_mcp_server.tools.messaging import register_messaging_tools
 from instagram_mcp_server.tools.transcription import register_transcription_tools
 from instagram_mcp_server.tools.gemini_analysis import register_gemini_tools
+from instagram_mcp_server.tools.posting_tools import register_posting_tools
+from instagram_mcp_server.tools.multi_account_tools import register_multi_account_tools
+from instagram_mcp_server.tools.feed_tools import register_feed_tools
+from instagram_mcp_server.tools.trigger_tools import register_trigger_tools
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +64,16 @@ def create_mcp_server() -> FastMCP:
 
     # Register all tools
     register_user_tools(mcp)
-    register_post_tools(mcp)
+    register_scraping_post_tools(mcp)
     register_messaging_tools(mcp)
     register_search_tools(mcp)
     register_action_tools(mcp)
     register_transcription_tools(mcp)
     register_gemini_tools(mcp)
+    register_multi_account_tools(mcp)
+    register_feed_tools(mcp)
+    register_trigger_tools(mcp)
+    register_posting_tools(mcp)
 
     # Register session management tool
     @mcp.tool(

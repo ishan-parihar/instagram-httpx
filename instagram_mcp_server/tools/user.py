@@ -14,7 +14,6 @@ from fastmcp.dependencies import CurrentContext
 from instagram_mcp_server.callbacks import MCPContextProgressCallback
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
 from instagram_mcp_server.dependencies import get_ready_extractor
-from instagram_mcp_server.error_handler import raise_tool_error
 from instagram_mcp_server.tools._guard import tool_guard
 from instagram_mcp_server.scraping import parse_user_sections
 
@@ -43,6 +42,7 @@ def register_user_tools(mcp: FastMCP) -> None:
     async def get_user_profile(
         username: str,
         sections: str | None = None,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -55,6 +55,7 @@ def register_user_tools(mcp: FastMCP) -> None:
                 Available sections: posts, reels, tagged, followers, following
                 Examples: "posts,reels", "tagged", "followers,following"
                 Default (None) scrapes only the main profile page.
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, sections (name -> raw text), and optional references.
@@ -62,7 +63,7 @@ def register_user_tools(mcp: FastMCP) -> None:
             Includes unknown_sections list when unrecognised names are passed.
             The LLM should parse the raw text in each section.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_profile")
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_profile", account_id=account_id)
         requested, unknown = parse_user_sections(sections)
 
         logger.info(
@@ -91,6 +92,7 @@ def register_user_tools(mcp: FastMCP) -> None:
         max_posts: int = 50,
         download_media: bool = False,
         extract_frames: bool = False,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -103,12 +105,13 @@ def register_user_tools(mcp: FastMCP) -> None:
                 (default: False). When True, returns downloaded_media with paths.
             extract_frames: Extract video frames at 1 FPS to local temp directory
                 (default: False). When True, returns frame_dirs with frame paths.
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, posts list, total_posts count, sections, and references.
             Each post has: id, shortcode, url, thumbnail_url, media_type.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_posts")
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_posts", account_id=account_id)
 
         logger.info(
             "Scraping user posts: %s (max_posts=%d)",
@@ -235,6 +238,7 @@ def register_user_tools(mcp: FastMCP) -> None:
         max_reels: int = 50,
         download_media: bool = False,
         extract_frames: bool = False,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -250,13 +254,14 @@ def register_user_tools(mcp: FastMCP) -> None:
                 (default: False). When True, returns downloaded_media with paths.
             extract_frames: Extract video frames at adaptive FPS to local temp directory
                 (default: False). When True, returns frame_dirs with frame paths.
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, reels list, total_reels count, sections, and references.
             Each reel has: id, shortcode, url, thumbnail_url, view_count_text, media_type.
             Use `get_post_details` on individual reel URLs for full engagement data.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_reels")
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_reels", account_id=account_id)
 
         logger.info(
             "Scraping user reels: %s (max_reels=%d)",
@@ -362,6 +367,7 @@ def register_user_tools(mcp: FastMCP) -> None:
         username: str,
         download_media: bool = False,
         extract_frames: bool = False,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -373,12 +379,13 @@ def register_user_tools(mcp: FastMCP) -> None:
                 (default: False). When True, returns downloaded_media with paths.
             extract_frames: Extract video frames at adaptive FPS to local temp directory
                 (default: False). When True, returns frame_dirs with frame paths.
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url and stories list, where each story has:
             media_url, timestamp, expires_at.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_stories")
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_stories", account_id=account_id)
 
         logger.info("Scraping user stories: %s", username)
 

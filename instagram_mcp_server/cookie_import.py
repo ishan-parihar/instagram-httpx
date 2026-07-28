@@ -323,7 +323,7 @@ BROWSER_REGISTRY: dict[str, BrowserProfile] = {
 
 # ─── Platform helpers ──────────────────────────────────────────────────────
 def _current_platform() -> Literal["linux", "darwin", "win32"]:
-    return sys.platform  # type: ignore[return-value]
+    return sys.platform
 
 
 def _expand_browser_path(path: str) -> Path | None:

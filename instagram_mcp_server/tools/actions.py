@@ -13,7 +13,6 @@ from fastmcp.dependencies import CurrentContext
 
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
 from instagram_mcp_server.dependencies import get_ready_extractor
-from instagram_mcp_server.error_handler import raise_tool_error
 from instagram_mcp_server.tools._guard import tool_guard
 
 logger = logging.getLogger(__name__)
@@ -31,6 +30,7 @@ def register_action_tools(mcp: FastMCP) -> None:
     @tool_guard("follow_user")
     async def follow_user(
         username: str,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -41,11 +41,12 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username to follow (e.g., "natgeo")
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="follow_user")
+        extractor = await get_ready_extractor(ctx, tool_name="follow_user", account_id=account_id)
         logger.info("Following user: %s", username)
 
         result = await extractor.follow_user(
@@ -63,6 +64,7 @@ def register_action_tools(mcp: FastMCP) -> None:
     @tool_guard("unfollow_user")
     async def unfollow_user(
         username: str,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -72,11 +74,12 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             username: Instagram username to unfollow (e.g., "natgeo")
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="unfollow_user")
+        extractor = await get_ready_extractor(ctx, tool_name="unfollow_user", account_id=account_id)
         logger.info("Unfollowing user: %s", username)
 
         result = await extractor.unfollow_user(
@@ -94,6 +97,7 @@ def register_action_tools(mcp: FastMCP) -> None:
     @tool_guard("like_post")
     async def like_post(
         post_url: str,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -103,11 +107,12 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="like_post")
+        extractor = await get_ready_extractor(ctx, tool_name="like_post", account_id=account_id)
         logger.info("Liking post: %s", post_url)
 
         result = await extractor.like_post(post_url)
@@ -123,6 +128,7 @@ def register_action_tools(mcp: FastMCP) -> None:
     @tool_guard("unlike_post")
     async def unlike_post(
         post_url: str,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -132,11 +138,12 @@ def register_action_tools(mcp: FastMCP) -> None:
 
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="unlike_post")
+        extractor = await get_ready_extractor(ctx, tool_name="unlike_post", account_id=account_id)
         logger.info("Unliking post: %s", post_url)
 
         result = await extractor.unlike_post(post_url)
@@ -153,6 +160,7 @@ def register_action_tools(mcp: FastMCP) -> None:
     async def save_post(
         post_url: str,
         collection: str | None = None,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -164,18 +172,19 @@ def register_action_tools(mcp: FastMCP) -> None:
         Args:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
             collection: Optional collection name to save the post into
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="save_post")
+        extractor = await get_ready_extractor(ctx, tool_name="save_post", account_id=account_id)
         logger.info(
             "Saving post: %s (collection=%s)",
             post_url,
             collection,
         )
 
-        result = await extractor.save_post(post_url, collection)
+        result = await extractor.save_post(post_url, collection or "")
 
         return result
 
@@ -190,6 +199,7 @@ def register_action_tools(mcp: FastMCP) -> None:
         post_url: str,
         comment: str,
         confirm_post: bool,
+        account_id: str | None = None,
         ctx: Context = CurrentContext(),
     ) -> dict[str, Any]:
         """
@@ -202,6 +212,7 @@ def register_action_tools(mcp: FastMCP) -> None:
             post_url: Instagram post URL (e.g., "https://www.instagram.com/p/ABC123/")
             comment: The comment text to post
             confirm_post: Must be True to actually post the comment
+            account_id: Optional account ID to use for the request
 
         Returns:
             Dict with url, status, and optional message.
@@ -213,7 +224,7 @@ def register_action_tools(mcp: FastMCP) -> None:
                 "message": "Comment not posted. Set confirm_post=True to post.",
             }
 
-        extractor = await get_ready_extractor(ctx, tool_name="comment_on_post")
+        extractor = await get_ready_extractor(ctx, tool_name="comment_on_post", account_id=account_id)
         logger.info("Commenting on post: %s", post_url)
 
         result = await extractor.comment_on_post(post_url, comment)

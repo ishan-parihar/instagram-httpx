@@ -13,7 +13,6 @@ from fastmcp.dependencies import CurrentContext
 
 from instagram_mcp_server.constants import TOOL_TIMEOUT_SECONDS
 from instagram_mcp_server.dependencies import get_ready_extractor
-from instagram_mcp_server.error_handler import raise_tool_error
 from instagram_mcp_server.tools._guard import tool_guard
 
 logger = logging.getLogger(__name__)
