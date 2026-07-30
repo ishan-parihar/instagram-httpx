@@ -1,97 +1,30 @@
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "instagram-httpx"
-version = "0.9.0"
-description = "MCP server for Instagram profile, posts, insights, messaging, and content posting with Claude AI integration. Supports user profiles, Business/Creator insights, search, DMs, account actions, and media posting (photos, videos, carousels, stories, reels) via web scraping and private API."
-readme = "README.md"
-requires-python = ">=3.12,<3.14"
-authors = [
-    { name = "Ishan Patel", email = "ishan@example.com" }
-]
-license = "Apache-2.0"
-keywords = [
-    "instagram",
-    "mcp",
-    "model-context-protocol",
-    "scraper",
-    "ai",
-    "automation",
-    "llm",
-    "anthropic",
-    "claude",
-    "social-media",
-    "instagram-insights",
-    "instagram-posting",
-    "instagram-upload",
-    "media-posting",
-    "content-creation",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Environment :: Console",
-    "Operating System :: OS Independent",
-]
+name = "instagram-httpx-mcp"
+version = "0.1.0"
+description = "Instagram MCP server using browser cookies and httpx"
+requires-python = ">=3.11"
 dependencies = [
-    "fastmcp>=3.0.0",
-    "httpx>=0.28.1",
-    "inquirer>=3.4.0",
+    "fastmcp>=2.0.0",
+    "httpx>=0.27.0",
     "python-dotenv>=1.1.1",
-    "instagrapi>=2.5.0",
-    "Pillow>=10.0.0",
-    "moviepy>=1.0.0",
+    "inquirer>=3.4.0",
+    "obscura-cookie-manager @ git+https://github.com/ishan-parihar/obscura-cookie-manager.git",
 ]
 
 [project.optional-dependencies]
-transcription = [
-    # Requires conda environment 'whisper-hindi' with whisper_timestamped
-    # Set INSTAGRAM_MCP_ENABLE_TRANSCRIPTION=1 to enable
-    "ffmpeg-python>=0.2.0",
-]
-gemini = [
-    "google-genai>=1.0.0",
-    # Requires GEMINI_API_KEY environment variable
-]
-all = [
-    "instagram-httpx[transcription,gemini]",
-]
-
-[project.urls]
-Homepage = "https://github.com/ishan-parihar/instagram-httpx"
-Documentation = "https://github.com/ishan-parihar/instagram-httpx#readme"
-Repository = "https://github.com/ishan-parihar/instagram-httpx"
-Issues = "https://github.com/ishan-parihar/instagram-httpx/issues"
-Changelog = "https://github.com/ishan-parihar/instagram-httpx/releases"
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4"]
 
 [project.scripts]
-instagram-mcp-server = "instagram_mcp_server.cli_main:main"
 instagram-httpx = "instagram_mcp_server.cli_main:main"
-instagram-launch-brave = "instagram_mcp_server.scripts.launch_brave:main"
 
-[build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.ruff]
+line-length = 100
+target-version = "py311"
 
-[tool.setuptools.packages.find]
-include = ["instagram_mcp_server*"]
-exclude = ["assets*", "docs*", "tests*"]
-
-[tool.setuptools.package-data]
-instagram_mcp_server = ["py.typed"]
-
-[dependency-groups]
-dev = [
-    "aiohttp>=3.12.13",
-    "pre-commit>=4.2.0",
-    "pytest>=8.3.5",
-    "pytest-asyncio>=1.0.0",
-    "pytest-cov>=6.1.1",
-    "pytest-xdist>=3.8.0",
-    "ruff>=0.11.11",
-    "ty>=0.0.1a12",
-]
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
