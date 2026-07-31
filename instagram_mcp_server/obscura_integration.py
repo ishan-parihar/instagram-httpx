@@ -18,6 +18,23 @@ from obscura_cookie_manager import (
     ReLoginRequiredError,
 )
 
+# Wrapper to add domain attribute to BrowserCookie3Extractor
+class BrowserCookie3ExtractorWithDomain:
+    """Wrapper around BrowserCookie3Extractor that adds domain attribute."""
+    
+    def __init__(self, browser_name: str, domain: str):
+        self._extractor = BrowserCookie3Extractor(browser_name=browser_name)
+        self.domain = domain
+        self.name = browser_name
+    
+    async def extract(self, domain: str, required_cookies: list[str]):
+        """Extract cookies using the wrapped extractor."""
+        return await self._extractor.extract(domain, required_cookies)
+    
+    def is_available(self) -> bool:
+        """Check if the extractor is available."""
+        return self._extractor.is_available()
+
 logger = logging.getLogger(__name__)
 
 # Required cookies for Instagram
@@ -59,10 +76,11 @@ class InstagramObscuraManager:
         cookie_path.parent.mkdir(parents=True, exist_ok=True)
         return FileCookieStorage(cookie_path)
 
-    def _get_extractor(self) -> BrowserCookie3Extractor:
+    def _get_extractor(self) -> BrowserCookie3ExtractorWithDomain:
         """Get browser cookie extractor (prefers Chrome)."""
-        return BrowserCookie3Extractor(
-            browser_name="chrome"
+        return BrowserCookie3ExtractorWithDomain(
+            browser_name="chrome",
+            domain="instagram.com"
         )
 
     def _get_manager(self) -> ObscuraCookieManager:
