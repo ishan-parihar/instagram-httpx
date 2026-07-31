@@ -12,7 +12,7 @@ from typing import Any, Optional
 from obscura_cookie_manager import (
     ObscuraCookieManager,
     FileCookieStorage,
-    BrowserCookieExtractor,
+    BrowserCookie3Extractor,
     CookieSource,
     CookieValidationResult,
     ReLoginRequiredError,
@@ -59,12 +59,10 @@ class InstagramObscuraManager:
         cookie_path.parent.mkdir(parents=True, exist_ok=True)
         return FileCookieStorage(cookie_path)
 
-    def _get_extractor(self) -> BrowserCookieExtractor:
+    def _get_extractor(self) -> BrowserCookie3Extractor:
         """Get browser cookie extractor (prefers Chrome)."""
-        return BrowserCookieExtractor(
-            domain="instagram.com",
-            required_cookies=INSTAGRAM_REQUIRED_COOKIES,
-            preferred_browsers=["chrome", "brave", "firefox", "edge"]
+        return BrowserCookie3Extractor(
+            browser_name="chrome"
         )
 
     def _get_manager(self) -> ObscuraCookieManager:
