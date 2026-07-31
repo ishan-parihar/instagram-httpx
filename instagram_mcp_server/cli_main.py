@@ -536,13 +536,20 @@ async def _check_session_api() -> bool:
                 "https://www.instagram.com/api/v1/users/web_profile_info/"
                 "?username=instagram"
             )
-            data = resp.json()
             
             # Handle rate limiting
             if resp.status_code == 429:
                 cache.set_rate_limit()
                 logger.warning("Rate limited during session check")
                 return True  # Assume valid during rate limit
+            
+            # Try to parse JSON response
+            try:
+                data = resp.json()
+            except Exception as e:
+                logger.warning(f"Failed to parse JSON response: {e}, status code: {resp.status_code}")
+                # If we get a non-429 status but invalid JSON, assume session is invalid
+                return False
             
             is_valid = resp.status_code == 200 and data.get("status") == "ok"
             cache.set(cache_key, {'valid': is_valid})
