@@ -193,6 +193,12 @@ def load_from_args(config: AppConfig) -> AppConfig:
         help="Browser to import cookies from (brave, chrome, edge, firefox, zen, ...)",
     )
 
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render tool results as JSON (default is TOON)",
+    )
+
     args = parser.parse_args()
 
     if args.log_level:
@@ -237,6 +243,9 @@ def load_from_args(config: AppConfig) -> AppConfig:
 
     if args.browser:
         config.cookie.preferred_browser = args.browser.lower()
+
+    if args.json:
+        config.server.json_output = True
 
     return config
 

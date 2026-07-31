@@ -126,22 +126,51 @@ def get_version() -> str:
 # ── Tool registry ──────────────────────────────────────────────────────────
 
 TOOLS = [
-    ("ias_get_user_profile", "Get Instagram user profile information"),
-    ("ias_get_user_stories", "Get user's active stories"),
-    ("ias_get_user_highlights", "Get user's highlight reels"),
-    ("ias_get_media_feed", "Get user's media feed"),
-    ("ias_get_media_detail", "Get detailed info for a specific post"),
-    ("ias_get_media_comments", "Get comments on a post"),
-    ("ias_get_user_reels", "Get user's Reels videos"),
-    ("ias_search_users", "Search for Instagram users"),
-    ("ias_get_followers", "Get user's followers list"),
-    ("ias_get_following", "Get user's following list"),
-    ("ias_send_direct_message", "Send a direct message to a user"),
-    ("ias_get_direct_messages", "Get direct message threads"),
-    ("ias_create_post_container", "Create a media container for posting"),
-    ("ias_publish_media", "Publish a media container to feed"),
-    ("ias_like_media", "Like a post"),
-    ("ias_comment_on_media", "Comment on a post"),
+    ("add_instagram_account", "Add Instagram account with cookies"),
+    ("check_comment_for_triggers", "Check if comment matches DM triggers"),
+    ("close_session", "Close browser session"),
+    ("comment_on_post", "Comment on a post"),
+    ("create_dm_trigger", "Create DM trigger for automated responses"),
+    ("delete_dm_trigger", "Delete DM trigger"),
+    ("execute_trigger_dm", "Execute DM trigger manually"),
+    ("follow_user", "Follow Instagram user"),
+    ("get_active_account_info", "Get active Instagram account info"),
+    ("get_direct_inbox", "Get direct message inbox"),
+    ("get_discover_feed", "Get discover feed"),
+    ("get_dm_conversation", "Get DM conversation"),
+    ("get_dm_trigger", "Get DM trigger details"),
+    ("get_hashtag_posts", "Get posts from hashtag"),
+    ("get_home_feed", "Get home feed"),
+    ("get_location_posts", "Get posts from location"),
+    ("get_post_details", "Get post details"),
+    ("get_trigger_executions_log", "Get DM trigger execution log"),
+    ("get_user_highlights", "Get user highlights"),
+    ("get_user_posts", "Get user posts"),
+    ("get_user_profile", "Get user profile"),
+    ("get_user_reels", "Get user reels"),
+    ("get_user_stories", "Get user stories"),
+    ("get_user_timeline", "Get user timeline"),
+    ("import_account_from_browser", "Import Instagram account from browser"),
+    ("like_post", "Like post"),
+    ("list_dm_triggers", "List DM triggers"),
+    ("list_instagram_accounts", "List Instagram accounts"),
+    ("pause_dm_trigger", "Pause DM trigger"),
+    ("remove_instagram_account", "Remove Instagram account"),
+    ("resume_dm_trigger", "Resume DM trigger"),
+    ("save_post", "Save post"),
+    ("search_locations", "Search locations"),
+    ("search_users", "Search users"),
+    ("send_dm", "Send direct message"),
+    ("switch_active_account", "Switch active Instagram account"),
+    ("unfollow_user", "Unfollow user"),
+    ("unlike_post", "Unlike post"),
+    ("update_account_cookies", "Update account cookies"),
+    ("update_dm_trigger", "Update DM trigger"),
+    ("upload_carousel", "Upload carousel"),
+    ("upload_photo", "Upload photo"),
+    ("upload_reel", "Upload reel"),
+    ("upload_story", "Upload story"),
+    ("upload_video", "Upload video"),
 ]
 
 
@@ -205,109 +234,38 @@ def list_tools_and_exit() -> None:
 
 def tool_info_and_exit(tool_name: str) -> None:
     """Show detailed info for a specific tool (AXI §9 contextual disclosure)."""
+    # Simple placeholder - for full implementation, this would need to introspect the actual tools
     tools_info = {
-        "ias_get_user_profile": {
-            "name": "ias_get_user_profile",
+        "get_user_profile": {
+            "name": "get_user_profile",
             "description": "Get Instagram user profile information by username",
-            "parameters": {"username": "string (required)", "sections": "string (optional, comma-separated: posts,reels,tagged,followers,following)"},
-            "returns": "Profile data including bio, followers, following, and optional sections",
+            "parameters": {"username": "string (required)"},
+            "returns": "Profile data including bio, followers, following, and posts",
         },
-        "ias_get_user_stories": {
-            "name": "ias_get_user_stories",
+        "get_user_posts": {
+            "name": "get_user_posts",
+            "description": "Get user's media feed posts",
+            "parameters": {"username": "string (required)", "limit": "number (optional)"},
+            "returns": "Array of media objects with id, shortcode, url, thumbnail, media_type",
+        },
+        "get_user_stories": {
+            "name": "get_user_stories",
             "description": "Get user active stories",
             "parameters": {"username": "string (required)"},
             "returns": "Array of story objects with media_url, timestamp, expires_at",
         },
-        "ias_get_user_highlights": {
-            "name": "ias_get_user_highlights",
-            "description": "Get user story highlight reels",
-            "parameters": {"username": "string (required)"},
-            "returns": "Array of highlight objects with title, cover_url, highlight_id",
-        },
-        "ias_get_media_feed": {
-            "name": "ias_get_media_feed",
-            "description": "Get user media feed posts",
-            "parameters": {"username": "string (required)", "max_posts": "number (default 50)"},
-            "returns": "Array of media objects with id, shortcode, url, thumbnail, media_type",
-        },
-        "ias_get_media_detail": {
-            "name": "ias_get_media_detail",
-            "description": "Get detailed info for a specific post",
-            "parameters": {"post_url": "string (required)", "include_comments": "boolean (default false)"},
-            "returns": "Post details with caption, engagement, media URLs, location, tags",
-        },
-        "ias_get_media_comments": {
-            "name": "ias_get_media_comments",
-            "description": "Get comments on a post",
-            "parameters": {"post_url": "string (required)", "limit": "number (default 50)"},
-            "returns": "Array of comment objects with author, text, timestamp",
-        },
-        "ias_get_user_reels": {
-            "name": "ias_get_user_reels",
-            "description": "Get user Reels videos",
-            "parameters": {"username": "string (required)", "max_reels": "number (default 50)"},
-            "returns": "Array of reel objects with id, shortcode, url, thumbnail, view_count",
-        },
-        "ias_search_users": {
-            "name": "ias_search_users",
+        "search_users": {
+            "name": "search_users",
             "description": "Search for Instagram users",
-            "parameters": {"query": "string (required)", "max_results": "number (default 50)"},
+            "parameters": {"query": "string (required)", "limit": "number (optional)"},
             "returns": "Array of user objects with username, full_name, profile_pic_url",
-        },
-        "ias_get_followers": {
-            "name": "ias_get_followers",
-            "description": "Get user followers list",
-            "parameters": {"username": "string (required)"},
-            "returns": "Array of follower objects with username, full_name",
-        },
-        "ias_get_following": {
-            "name": "ias_get_following",
-            "description": "Get user following list",
-            "parameters": {"username": "string (required)"},
-            "returns": "Array of following objects with username, full_name",
-        },
-        "ias_send_direct_message": {
-            "name": "ias_send_direct_message",
-            "description": "Send a direct message to a user",
-            "parameters": {"username": "string (required)", "message": "string (required)", "confirm_send": "boolean (required, must be true)"},
-            "returns": "Status object with sent flag and message confirmation",
-        },
-        "ias_get_direct_messages": {
-            "name": "ias_get_direct_messages",
-            "description": "Get direct message threads",
-            "parameters": {"username": "string (optional)", "thread_id": "string (optional)", "limit": "number (default 50)"},
-            "returns": "Array of message objects with sender, text, timestamp",
-        },
-        "ias_create_post_container": {
-            "name": "ias_create_post_container",
-            "description": "Create a media container for posting",
-            "parameters": {"caption": "string (required)", "media_url": "string (required)"},
-            "returns": "Container ID for publishing",
-        },
-        "ias_publish_media": {
-            "name": "ias_publish_media",
-            "description": "Publish a media container to feed",
-            "parameters": {"container_id": "string (required)"},
-            "returns": "Published post status with post URL",
-        },
-        "ias_like_media": {
-            "name": "ias_like_media",
-            "description": "Like a post",
-            "parameters": {"post_url": "string (required)"},
-            "returns": "Status object with like confirmation",
-        },
-        "ias_comment_on_media": {
-            "name": "ias_comment_on_media",
-            "description": "Comment on a post",
-            "parameters": {"post_url": "string (required)", "comment": "string (required)", "confirm_post": "boolean (required, must be true)"},
-            "returns": "Status object with comment confirmation",
         },
     }
     if tool_name in tools_info:
         toon_print_dict(tools_info[tool_name])
     else:
         valid = list(tools_info.keys())
-        axi_error(f"Unknown tool: '{tool_name}'", f"Valid tools: {', '.join(valid)}")
+        axi_error(f"Tool info not available for: '{tool_name}'", f"Available tool info: {', '.join(valid)}")
     sys.exit(0)
 
 
@@ -403,6 +361,7 @@ Instagram MCP Server provides intelligent Instagram content creation with:
 - Multi-account support with posting limits
 - Advanced media processing with letterbox/crop modes
 - DM automation and trigger system
+- Direct CLI tool execution without MCP server
 
 ## Quick Start
 ```bash
@@ -418,27 +377,64 @@ instagram-httpx-mcp --status
 # List available tools
 instagram-httpx-mcp --list-tools
 
+# Execute tools directly
+instagram-httpx-mcp get_user_profile --username natgeo
+instagram-httpx-mcp get_user_posts --username natgeo --limit 5
+
 # Start MCP server
 instagram-httpx-mcp
 ```
 
+## Direct CLI Tool Execution
+You can call Instagram MCP tools directly from the CLI without starting the MCP server:
+```bash
+# Get user profile
+instagram-httpx-mcp get_user_profile --username natgeo
+
+# Get user posts
+instagram-httpx-mcp get_user_posts --username natgeo --limit 10
+
+# Search users
+instagram-httpx-mcp search_users --query photography --limit 20
+
+# Get user stories
+instagram-httpx-mcp get_user_stories --username natgeo
+
+# Output as JSON
+instagram-httpx-mcp get_user_profile --username natgeo --json
+```
+
 ## MCP Tools
-- `ias_get_user_profile` - Get user profile information
-- `ias_get_user_stories` - Get user stories
-- `ias_get_user_highlights` - Get story highlights
-- `ias_get_media_feed` - Get user media feed
-- `ias_get_media_detail` - Get detailed post information
-- `ias_get_media_comments` - Get post comments
-- `ias_get_user_reels` - Get user reels
-- `ias_search_users` - Search Instagram users
-- `ias_get_followers` - Get user followers
-- `ias_get_following` - Get user following
-- `ias_send_direct_message` - Send DM to user
-- `ias_get_direct_messages` - Get DM threads
-- `ias_create_post_container` - Create media container
-- `ias_publish_media` - Publish media to feed
-- `ias_like_media` - Like a post
-- `ias_comment_on_media` - Comment on post
+- `get_user_profile` - Get user profile information
+- `get_user_posts` - Get user posts
+- `get_user_stories` - Get user stories
+- `get_user_highlights` - Get user highlights
+- `get_user_reels` - Get user reels
+- `get_user_timeline` - Get user timeline
+- `get_home_feed` - Get home feed
+- `get_discover_feed` - Get discover feed
+- `get_post_details` - Get post details
+- `search_users` - Search Instagram users
+- `search_locations` - Search locations
+- `get_hashtag_posts` - Get hashtag posts
+- `get_location_posts` - Get location posts
+- `follow_user` - Follow user
+- `unfollow_user` - Unfollow user
+- `like_post` - Like post
+- `unlike_post` - Unlike post
+- `save_post` - Save post
+- `comment_on_post` - Comment on post
+- `send_dm` - Send direct message
+- `get_direct_inbox` - Get direct message inbox
+- `get_dm_conversation` - Get DM conversation
+- `upload_photo` - Upload photo
+- `upload_video` - Upload video
+- `upload_reel` - Upload reel
+- `upload_story` - Upload story
+- `upload_carousel` - Upload carousel
+- `list_instagram_accounts` - List Instagram accounts
+- `import_account_from_browser` - Import account from browser
+- `switch_active_account` - Switch active account
 
 ## Smart Processing
 - **Auto mode**: Media-type-aware processing (fit for stories/reels, crop for feed)
@@ -569,6 +565,92 @@ async def _check_session_api() -> bool:
         return False
 
 
+def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> None:
+    """Execute a tool directly from CLI without MCP protocol."""
+    import asyncio
+    from instagram_mcp_server.server import create_mcp_server
+
+    # Parse --key value pairs into a dict
+    kwargs = {}
+    positional = []
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg.startswith("--"):
+            key = arg[2:]
+            if i + 1 < len(args) and not args[i + 1].startswith("--"):
+                kwargs[key] = args[i + 1]
+                i += 2
+            else:
+                kwargs[key] = "true"
+                i += 1
+        else:
+            positional.append(arg)
+            i += 1
+
+    # Get tool object
+    mcp = create_mcp_server()
+    tools = asyncio.run(mcp.list_tools())
+    tool = next((t for t in tools if t.name == tool_name), None)
+    if not tool:
+        valid = sorted(t.name for t in tools)
+        axi_error(f"Unknown tool: '{tool_name}'", f"Valid tools: {', '.join(valid)}")
+
+    # Map positional args to required params
+    schema = tool.parameters or {}
+    props = schema.get("properties", {})
+    required = schema.get("required", [])
+    required_params = [p for p in required if p in props]
+
+    for idx, val in enumerate(positional):
+        if idx < len(required_params):
+            kwargs[required_params[idx]] = val
+        else:
+            axi_error(
+                f"Unexpected positional arg: '{val}'",
+                f"Tool `{tool_name}` expects: {', '.join(required_params)}",
+            )
+
+    # Type coercion from schema
+    for key, val in list(kwargs.items()):
+        if key in props:
+            prop = props[key]
+            prop_type = prop.get("type", "string")
+            try:
+                if prop_type == "integer":
+                    kwargs[key] = int(val)
+                elif prop_type == "number":
+                    kwargs[key] = float(val)
+                elif prop_type == "boolean":
+                    kwargs[key] = val.lower() in ("true", "1", "yes")
+            except (ValueError, TypeError):
+                axi_error(
+                    f"Invalid value for `{key}`: '{val}' (expected {prop_type})",
+                    f"Tool `{tool_name}` parameter `{key}` expects type {prop_type}",
+                )
+
+    # Call the tool
+    try:
+        result = asyncio.run(tool.fn(**kwargs))
+    except SystemExit:
+        raise
+    except TypeError as e:
+        # Catch missing required args (e.g. "missing 1 required positional argument")
+        axi_error(
+            f"Tool `{tool_name}` missing required argument",
+            f"Run `instagram-httpx --tool-info {tool_name}` to see required parameters",
+        )
+    except Exception as e:
+        axi_error(f"Tool `{tool_name}` failed: {e}")
+
+    # Output
+    if use_json:
+        print(json.dumps(result, indent=2))
+    else:
+        # AXI §1: TOON is default
+        toon_print_dict(result)
+
+
 # ── Help output ────────────────────────────────────────────────────────────
 
 def show_help() -> None:
@@ -579,6 +661,7 @@ def show_help() -> None:
     print()
     print("Usage:")
     print("  instagram-httpx-mcp                    Show home view with live state")
+    print("  instagram-httpx-mcp <tool> [args]      Call a tool directly (see examples)")
     print("  instagram-httpx-mcp --list-tools       List all available MCP tools")
     print("  instagram-httpx-mcp --tool-info <name> Show details for a specific tool")
     print("  instagram-httpx-mcp --login            Import cookies from browser")
@@ -586,6 +669,7 @@ def show_help() -> None:
     print("  instagram-httpx-mcp --status           Check authentication status")
     print("  instagram-httpx-mcp --install-hook     Install session hooks (Claude Code/Codex)")
     print("  instagram-httpx-mcp --install-skill    Install agent skill for auto-discovery")
+    print("  instagram-httpx-mcp --json            Render tool results as JSON (default is TOON)")
     print("  instagram-httpx-mcp --help             Show this help message")
     print()
     print("Session Integration:")
@@ -593,7 +677,9 @@ def show_help() -> None:
     print("  --install-skill   Install agent skill for task-based discovery")
     print()
     print("Examples:")
-    print("  instagram-httpx-mcp --tool-info ias_get_user_profile")
+    print("  instagram-httpx-mcp get_user_profile --username natgeo")
+    print("  instagram-httpx-mcp get_user_posts --username natgeo --limit 5")
+    print("  instagram-httpx-mcp --tool-info get_user_profile")
     print("  instagram-httpx-mcp --list-tools")
     print("  instagram-httpx-mcp --login")
     print("  instagram-httpx-mcp --install-hook")
@@ -613,6 +699,23 @@ def exit_gracefully(exit_code: int = 0) -> None:
 
 def main() -> None:
     """Main application entry point."""
+    # ── Direct tool invocation: instagram-httpx-mcp <tool_name> [args...] ──────
+    # Intercept BEFORE any config loading to avoid argparse conflicts
+    if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+        tool_name = sys.argv[1]
+        tool_names = [t[0] for t in TOOLS]
+        if tool_name in tool_names:
+            # Filter out CLI-only flags, keep tool args
+            use_json = "--json" in sys.argv
+            remaining = [a for a in sys.argv[2:] if a != "--json"]
+            run_tool_direct(tool_name, remaining, use_json=use_json)
+            sys.exit(0)
+        # Looks like a tool name but doesn't match — fail early with valid list
+        axi_error(
+            f"Unknown tool: '{tool_name}'",
+            f"Valid tools: {', '.join(tool_names)}",
+        )
+
     config = get_config()
 
     configure_logging(
