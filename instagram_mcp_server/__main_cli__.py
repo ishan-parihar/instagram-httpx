@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Entry point for instagram-mcp-server command."""
+"""Custom entry point script for instagram-httpx that handles tool interception."""
 
 import sys
 import os
 
-# ── Direct tool invocation: instagram-httpx-mcp <tool_name> [args...] ──────
+# ── Direct tool invocation: instagram-httpx <tool_name> [args...] ──────
 # Intercept BEFORE any imports to avoid argparse conflicts
+# This must be at module level to execute when run with -m
 if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
     # Set environment variable early before any imports
     os.environ["INSTAGRAM_MCP_TOOL_MODE"] = "1"
@@ -28,7 +29,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
     )
 
 def main() -> None:
-    """Main entry point that delegates to cli_main (MCP server mode)."""
+    """Main entry point for MCP server mode."""
     from instagram_mcp_server.cli_main import main as cli_main
     cli_main()
 

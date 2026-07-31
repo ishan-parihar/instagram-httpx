@@ -18,12 +18,12 @@ class MockContext:
     def __init__(self):
         self._progress = []
     
-    async def report_progress(self, message: str, progress: float = 0.0):
+    async def report_progress(self, message: str, progress: float = 0.0, total: float = 100.0):
         """Mock progress reporting."""
-        self._progress.append((message, progress))
+        self._progress.append((message, progress, total))
         # Optionally print progress to stdout
         if progress > 0:
-            print(f"Progress: {progress:.0%} - {message}")
+            print(f"Progress: {progress:.0%}/{total:.0%} - {message}")
 
 TOOLS = [
     # User
@@ -132,7 +132,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         from instagram_mcp_server.server import create_mcp_server
     finally:
         sys.argv = original_argv
-        os.environ.pop("INSTAGRAM_MCP_TOOL_MODE", None)
+        # Keep INSTAGRAM_MCP_TOOL_MODE set during tool execution
 
     # Parse --key value pairs into a dict
     kwargs = {}

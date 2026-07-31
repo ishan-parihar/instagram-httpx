@@ -2,6 +2,7 @@
 import json
 
 import asyncio
+import logging
 import os
 import sys
 
@@ -27,6 +28,8 @@ from instagram_mcp_server.session_state import (
     source_state_path,
 )
 from instagram_mcp_server.setup import run_profile_creation
+
+logger = logging.getLogger(__name__)
 
 # ── TOON output helpers (AXI §1) ───────────────────────────────────────────
 
@@ -434,6 +437,10 @@ def clear_profile_and_exit() -> None:
         print("message: No authentication state found")
         sys.exit(0)
 
+    # Clear session cache as well
+    from instagram_mcp_server.session_cache import clear_session_cache
+    clear_session_cache()
+
     if clear_auth_state(profile_dir):
         print("status: success")
         print("message: Authentication state cleared")
@@ -493,9 +500,25 @@ def profile_info_and_exit() -> None:
 
 async def _check_session_api() -> bool:
     """Check Instagram session validity by calling the web profile API."""
+    from instagram_mcp_server.session_cache import get_session_cache
+    
+    cache = get_session_cache()
+    
+    # Check if we're in rate limit cooldown
+    if cache.is_in_rate_limit_cooldown():
+        logger.warning("In rate limit cooldown, skipping session check")
+        return True  # Assume session is valid during cooldown
+    
+    # Check cache first
+    cache_key = "session_validity"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result.get('valid', False)
+    
     try:
         cookies = load_cookies()
         if not cookies:
+            cache.set(cache_key, {'valid': False})
             return False
 
         headers = {
@@ -514,8 +537,18 @@ async def _check_session_api() -> bool:
                 "?username=instagram"
             )
             data = resp.json()
-            return resp.status_code == 200 and data.get("status") == "ok"
-    except Exception:
+            
+            # Handle rate limiting
+            if resp.status_code == 429:
+                cache.set_rate_limit()
+                logger.warning("Rate limited during session check")
+                return True  # Assume valid during rate limit
+            
+            is_valid = resp.status_code == 200 and data.get("status") == "ok"
+            cache.set(cache_key, {'valid': is_valid})
+            return is_valid
+    except Exception as e:
+        logger.warning(f"Session check failed: {e}")
         return False
 
 
