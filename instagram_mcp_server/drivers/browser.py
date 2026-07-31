@@ -112,10 +112,17 @@ def load_cookies(profile_dir: Path | None = None) -> dict[str, str]:
     if cookie_path.exists():
         try:
             raw = json.loads(cookie_path.read_text())
-            if isinstance(raw, dict) and "cookies" in raw:
-                raw = raw["cookies"]
-            return {c["name"]: c["value"] for c in raw}
-        except (OSError, json.JSONDecodeError, KeyError):
-            logger.warning("Corrupt cookie file at %s; re-importing", cookie_path)
+            # Handle both dict format and list format
+            if isinstance(raw, dict):
+                if "cookies" in raw:
+                    raw = raw["cookies"]
+                else:
+                    # Already in dict format
+                    return raw
+            if isinstance(raw, list):
+                return {c["name"]: c["value"] for c in raw}
+            return raw
+        except (OSError, json.JSONDecodeError, KeyError) as e:
+            logger.warning("Corrupt cookie file at %s; re-importing: %s", cookie_path, e)
 
     return load_or_import_cookies(profile_dir) or {}
