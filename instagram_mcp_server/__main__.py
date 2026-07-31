@@ -1,6 +1,28 @@
 #!/usr/bin/env python3
 """Entry point for instagram-mcp-server command."""
 
+import sys
+
+# ── Direct tool invocation: instagram-httpx-mcp <tool_name> [args...] ──────
+# Intercept BEFORE any imports to avoid argparse conflicts
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    # Import only what we need for early interception
+    from instagram_mcp_server.cli_main import TOOLS, axi_error, run_tool_direct
+    
+    tool_name = sys.argv[1]
+    tool_names = [t[0] for t in TOOLS]
+    if tool_name in tool_names:
+        # Filter out CLI-only flags, keep tool args
+        use_json = "--json" in sys.argv
+        remaining = [a for a in sys.argv[2:] if a != "--json"]
+        run_tool_direct(tool_name, remaining, use_json=use_json)
+        sys.exit(0)
+    # Looks like a tool name but doesn't match — fail early with valid list
+    axi_error(
+        f"Unknown tool: '{tool_name}'",
+        f"Valid tools: {', '.join(tool_names)}",
+    )
+
 from instagram_mcp_server.cli_main import main
 
 if __name__ == "__main__":
