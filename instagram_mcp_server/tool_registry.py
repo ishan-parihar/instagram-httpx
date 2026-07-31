@@ -5,9 +5,25 @@ This module is separate from cli_main to avoid circular imports when
 early-intercepting tool names in __main__.py.
 """
 
+import asyncio
 import json
+import os
 import sys
 from typing import Any
+
+# Mock Context for direct CLI execution
+class MockContext:
+    """Mock FastMCP Context for direct CLI tool execution."""
+    
+    def __init__(self):
+        self._progress = []
+    
+    async def report_progress(self, message: str, progress: float = 0.0):
+        """Mock progress reporting."""
+        self._progress.append((message, progress))
+        # Optionally print progress to stdout
+        if progress > 0:
+            print(f"Progress: {progress:.0%} - {message}")
 
 TOOLS = [
     # User
@@ -103,7 +119,9 @@ def toon_print_dict(data: Any, indent: int = 0) -> None:
 
 def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> None:
     """Execute a tool directly from CLI without MCP protocol."""
-    import asyncio
+    
+    # Set environment variable to prevent argparse from processing tool args
+    os.environ["INSTAGRAM_MCP_TOOL_MODE"] = "1"
     
     # Temporarily override sys.argv to prevent argparse from processing tool args
     original_argv = sys.argv
@@ -114,6 +132,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         from instagram_mcp_server.server import create_mcp_server
     finally:
         sys.argv = original_argv
+        os.environ.pop("INSTAGRAM_MCP_TOOL_MODE", None)
 
     # Parse --key value pairs into a dict
     kwargs = {}
@@ -181,6 +200,10 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
                     f"Tool `{tool_name}` parameter `{key}` expects type {prop_type}",
                 )
 
+    # Prepare context for direct CLI execution
+    ctx = MockContext()
+    kwargs["ctx"] = ctx
+
     # Call the tool
     try:
         result = asyncio.run(tool.fn(**kwargs))
@@ -188,10 +211,14 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         raise
     except TypeError as e:
         # Catch missing required args (e.g. "missing 1 required positional argument")
-        axi_error(
-            f"Tool `{tool_name}` missing required argument",
-            f"Run `instagram-httpx --tool-info {tool_name}` to see required parameters",
-        )
+        error_msg = str(e)
+        if "missing" in error_msg and "required" in error_msg:
+            axi_error(
+                f"Tool `{tool_name}` requires additional parameters",
+                f"Run `instagram-httpx --tool-info {tool_name}` to see parameters.",
+            )
+        else:
+            axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
     except Exception as e:
         axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
 
