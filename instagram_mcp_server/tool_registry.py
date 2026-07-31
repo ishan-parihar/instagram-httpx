@@ -147,6 +147,13 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
     required = schema.get("required", [])
     required_params = [p for p in required if p in props]
 
+    # Handle tools with no required parameters
+    if not required_params and positional:
+        axi_error(
+            f"Unexpected positional arg: '{positional[0]}'",
+            f"Tool `{tool_name}` takes no positional arguments",
+        )
+
     for idx, val in enumerate(positional):
         if idx < len(required_params):
             kwargs[required_params[idx]] = val
