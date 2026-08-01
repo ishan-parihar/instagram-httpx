@@ -11,7 +11,7 @@ from instagram_mcp_server.config.schema import (
 class TestCookieConfig:
     def test_defaults(self):
         config = CookieConfig()
-        assert config.profile_dir == "~/.instagram-mcp/profile"
+        assert config.profile_dir == "~/.instagram-lyr/profile"
 
     def test_validate_passes(self):
         CookieConfig().validate()

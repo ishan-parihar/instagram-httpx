@@ -2,7 +2,7 @@
 
 No browser is used.  Authentication relies entirely on Instagram session
 cookies (sessionid + csrftoken) extracted from a real browser once, stored
-at ``~/.instagram-mcp/profile/cookies.json``, and reused across restarts.
+at ``~/.instagram-lyr/profile/cookies.json``, and reused across restarts.
 """
 
 from __future__ import annotations

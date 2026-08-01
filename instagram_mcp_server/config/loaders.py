@@ -186,7 +186,7 @@ def load_from_args(config: AppConfig) -> AppConfig:
         type=str,
         default=None,
         metavar="PATH",
-        help="Path to profile directory (default: ~/.instagram-mcp/profile)",
+        help="Path to profile directory (default: ~/.instagram-lyr/profile)",
     )
 
     parser.add_argument(

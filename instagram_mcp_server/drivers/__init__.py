@@ -2,7 +2,7 @@
 Cookie-based session management for Instagram scraping.
 
 No browser is required.  Instagram session cookies are extracted from a real
-browser once, saved to ``~/.instagram-mcp/profile/cookies.json``, and reused
+browser once, saved to ``~/.instagram-lyr/profile/cookies.json``, and reused
 for direct API calls via the private Instagram web API.
 """
 

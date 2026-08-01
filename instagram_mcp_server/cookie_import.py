@@ -826,7 +826,7 @@ def manual_cookie_import_guide() -> None:
 ║                                                                  ║
 ║  5. Export cookies as JSON                                       ║
 ║                                                                  ║
-║  6. Save to: ~/.instagram-mcp/profile/cookies.json               ║
+║  6. Save to: ~/.instagram-lyr/profile/cookies.json               ║
 ║                                                                  ║
 ║  7. Run the MCP server again                                     ║
 ║                                                                  ║

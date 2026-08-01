@@ -20,7 +20,7 @@ class ConfigurationError(Exception):
 class CookieConfig:
     """Configuration for cookie-based Instagram API access."""
 
-    profile_dir: str = "~/.instagram-mcp/profile"
+    profile_dir: str = "~/.instagram-lyr/profile"
     preferred_browser: str | None = None
 
     def validate(self) -> None:

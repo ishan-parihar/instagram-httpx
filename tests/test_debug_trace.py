@@ -111,4 +111,4 @@ def test_safe_source_profile_dir_ignores_generic_env_fallback(monkeypatch):
         lambda: (_ for _ in ()).throw(RuntimeError("boom")),
     )
 
-    assert _safe_source_profile_dir() == Path("~/.instagram-mcp/profile").expanduser()
+    assert _safe_source_profile_dir() == Path("~/.instagram-lyr/profile").expanduser()
