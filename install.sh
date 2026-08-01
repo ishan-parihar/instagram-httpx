@@ -44,16 +44,16 @@ check_prerequisites() {
         exit 1
     fi
 
-    # Python >= 3.12
+    # Python >= 3.11
     if command -v python3 &>/dev/null; then
         PY_VERSION="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
         PY_MAJOR="$(echo "$PY_VERSION" | cut -d. -f1)"
         PY_MINOR="$(echo "$PY_VERSION" | cut -d. -f2)"
-        if [ "$PY_MAJOR" -ge 3 ] && [ "$PY_MINOR" -ge 12 ]; then
+        if [ "$PY_MAJOR" -ge 3 ] && [ "$PY_MINOR" -ge 11 ]; then
             success "python ${PY_VERSION}"
         else
-            error "Python 3.12+ required (found ${PY_VERSION})."
-            echo "  Install:  uv python install 3.12"
+            error "Python 3.11+ required (found ${PY_VERSION})."
+            echo "  Install:  uv python install 3.11"
             exit 1
         fi
     else
