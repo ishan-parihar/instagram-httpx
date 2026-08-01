@@ -504,3 +504,79 @@ def register_user_tools(mcp: FastMCP) -> None:
         await ctx.report_progress(progress=100, total=100, message="Complete")
 
         return result
+
+    @mcp.tool(
+        timeout=TOOL_TIMEOUT_SECONDS * 3,  # follower lists can be large
+        title="Get User Followers",
+        annotations={"readOnlyHint": True, "openWorldHint": True},
+        tags={"user", "social", "scraping"},
+    )
+    @tool_guard("get_user_followers")
+    async def get_user_followers(
+        username: str,
+        max_count: int = 100,
+        account_id: str | None = None,
+        ctx: Context = CurrentContext(),
+    ) -> dict[str, Any]:
+        """
+        Get the list of users following an Instagram account.
+
+        Args:
+            username: Instagram username (e.g., "instagram", "natgeo")
+            max_count: Maximum number of followers to retrieve (default 100, max 2000).
+                Higher values take longer due to anti-bot rate limiting.
+            account_id: Optional account ID to use for the request
+
+        Returns:
+            Dict with url, users list (username, full_name, is_private, is_verified,
+            profile_pic_url), total count, pages_fetched, and has_more flag.
+            Anti-bot jitter is applied between pages to protect session validity.
+        """
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_followers", account_id=account_id)
+
+        logger.info("Fetching followers for: %s (max=%d)", username, max_count)
+        await ctx.report_progress(progress=0, total=100, message="Fetching followers...")
+
+        cb = MCPContextProgressCallback(ctx)
+        result = await extractor.get_followers(username, max_count=max_count, callbacks=cb)
+
+        await ctx.report_progress(progress=100, total=100, message="Complete")
+        return result
+
+    @mcp.tool(
+        timeout=TOOL_TIMEOUT_SECONDS * 3,  # following lists can be large
+        title="Get User Following",
+        annotations={"readOnlyHint": True, "openWorldHint": True},
+        tags={"user", "social", "scraping"},
+    )
+    @tool_guard("get_user_following")
+    async def get_user_following(
+        username: str,
+        max_count: int = 100,
+        account_id: str | None = None,
+        ctx: Context = CurrentContext(),
+    ) -> dict[str, Any]:
+        """
+        Get the list of users an Instagram account follows.
+
+        Args:
+            username: Instagram username (e.g., "instagram", "natgeo")
+            max_count: Maximum number of follows to retrieve (default 100, max 2000).
+                Higher values take longer due to anti-bot rate limiting.
+            account_id: Optional account ID to use for the request
+
+        Returns:
+            Dict with url, users list (username, full_name, is_private, is_verified,
+            profile_pic_url), total count, pages_fetched, and has_more flag.
+            Anti-bot jitter is applied between pages to protect session validity.
+        """
+        extractor = await get_ready_extractor(ctx, tool_name="get_user_following", account_id=account_id)
+
+        logger.info("Fetching following for: %s (max=%d)", username, max_count)
+        await ctx.report_progress(progress=0, total=100, message="Fetching following...")
+
+        cb = MCPContextProgressCallback(ctx)
+        result = await extractor.get_following(username, max_count=max_count, callbacks=cb)
+
+        await ctx.report_progress(progress=100, total=100, message="Complete")
+        return result

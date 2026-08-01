@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import random
 import re
 from typing import Any
 
@@ -43,6 +44,14 @@ DESKTOP_UA = (
 # How long to wait between API retries on 429
 _RATE_LIMIT_SLEEP = 30
 _MAX_RETRIES = 3
+
+# Anti-bot: jitter range (seconds) between paginated requests
+_JITTER_MIN = 1.5
+_JITTER_MAX = 4.0
+# Soft-block backoff (Instagram returns "please_wait_a_few_minutes")
+_SOFT_BLOCK_SLEEP = 180
+# Hard cap on users per call — prevents accidental full-crawl that triggers blocks
+_MAX_FOLLOW_USERS = 2000
 
 _SHORTCODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
@@ -393,21 +402,152 @@ class InstagramAPIClient:
                 "highlights", ""
             )
             profile["references"].update(highlights.get("references", {}))
-
-        # Followers / following count (already in bio)
+        # Followers / following — call real API instead of returning counts
         if "followers" in requested:
-            profile["sections"]["followers"] = (
-                f"Followers: {user.get('follower_count', 0)}"
-            )
+            followers = await self.get_followers(username, max_count=50, callbacks=callbacks)
+            users_list = followers.get("users", [])
+            lines = [
+                f"{u['username']} ({u['full_name']}){' [verified]' if u.get('is_verified') else ''}{' [private]' if u.get('is_private') else ''}"
+                for u in users_list
+            ]
+            header = f"Followers: {user.get('follower_count', 0)} total"
+            if followers.get("has_more"):
+                header += f" (showing {len(users_list)} — has more)"
+            profile["sections"]["followers"] = header + ("\n" + "\n".join(lines) if lines else "")
+            profile["sections"]["followers_json"] = json.dumps(users_list, indent=2)
+
         if "following" in requested:
-            profile["sections"]["following"] = (
-                f"Following: {user.get('following_count', 0)}"
-            )
+            following = await self.get_following(username, max_count=50, callbacks=callbacks)
+            users_list = following.get("users", [])
+            lines = [
+                f"{u['username']} ({u['full_name']}){' [verified]' if u.get('is_verified') else ''}{' [private]' if u.get('is_private') else ''}"
+                for u in users_list
+            ]
+            header = f"Following: {user.get('following_count', 0)} total"
+            if following.get("has_more"):
+                header += f" (showing {len(users_list)} — has more)"
+            profile["sections"]["following"] = header + ("\n" + "\n".join(lines) if lines else "")
+            profile["sections"]["following_json"] = json.dumps(users_list, indent=2)
 
         return profile
 
-    # -- User posts ------------------------------------------------------------
+    # -- Followers / Following --------------------------------------------------
 
+    async def _get_followers_or_following(
+        self,
+        username: str,
+        endpoint: str,
+        max_count: int = 0,
+        callbacks: Any = None,
+    ) -> dict[str, Any]:
+        """Paginate ``/friendships/{uid}/followers/`` or ``/following/``.
+
+        Anti-bot measures:
+        - Randomised page size (30-50) matching the web app.
+        - Randomised inter-page jitter (1.5-4 s).
+        - Soft-block backoff on ``please_wait_a_few_minutes``.
+        - Hard cap on total users to prevent full-crawl detection.
+        """
+        uid = await self._resolve_user_id_cached(username)
+        limit = max_count if max_count > 0 else _MAX_FOLLOW_USERS
+        limit = min(limit, _MAX_FOLLOW_USERS)  # enforce hard cap
+
+        users: list[dict[str, Any]] = []
+        next_max_id: str | None = None
+        page_count = 0
+        soft_block_retries = 0
+
+        while len(users) < limit:
+            # Randomised page size — the web app sends 30-50
+            page_size = random.randint(30, 50)
+            params: dict[str, Any] = {"count": page_size}
+            if next_max_id:
+                params["max_id"] = next_max_id
+
+            try:
+                body = await self._get(f"/friendships/{uid}/{endpoint}/", params=params)
+            except AuthenticationError as exc:
+                msg = str(exc).lower()
+                if "please_wait" in msg and soft_block_retries < 3:
+                    soft_block_retries += 1
+                    logger.warning(
+                        "Soft-blocked on %s page %d — sleeping %ds (retry %d/3)",
+                        endpoint, page_count + 1, _SOFT_BLOCK_SLEEP, soft_block_retries,
+                    )
+                    await self._sleep(_SOFT_BLOCK_SLEEP)
+                    continue
+                raise
+
+            soft_block_retries = 0  # reset on successful page
+            page_users = body.get("users", [])
+            if not page_users:
+                break
+
+            for u in page_users:
+                users.append({
+                    "pk": u.get("pk"),
+                    "username": u.get("username", ""),
+                    "full_name": u.get("full_name", ""),
+                    "is_private": u.get("is_private", False),
+                    "is_verified": u.get("is_verified", False),
+                    "profile_pic_url": u.get("profile_pic_url", ""),
+                })
+                if len(users) >= limit:
+                    break
+
+            page_count += 1
+            next_max_id = body.get("next_max_id")
+            if not next_max_id:
+                break
+
+            # Anti-bot: jitter between pages
+            if len(users) < limit:
+                jitter = random.uniform(_JITTER_MIN, _JITTER_MAX)
+                logger.debug(
+                    "Jitter %.1fs before page %d (%d/%d users)",
+                    jitter, page_count + 1, len(users), limit,
+                )
+                await self._sleep(jitter)
+
+        return {
+            "url": f"https://www.instagram.com/{username}/{endpoint}/",
+            "users": users,
+            "total": len(users),
+            "pages_fetched": page_count,
+            "has_more": next_max_id is not None and len(users) >= limit,
+        }
+
+    async def get_followers(
+        self,
+        username: str,
+        max_count: int = 0,
+        callbacks: Any = None,
+    ) -> dict[str, Any]:
+        """Return the list of users following *username*.
+
+        Each entry contains ``pk``, ``username``, ``full_name``,
+        ``is_private``, ``is_verified``, and ``profile_pic_url``.
+        """
+        return await self._get_followers_or_following(
+            username, "followers", max_count=max_count, callbacks=callbacks,
+        )
+
+    async def get_following(
+        self,
+        username: str,
+        max_count: int = 0,
+        callbacks: Any = None,
+    ) -> dict[str, Any]:
+        """Return the list of users *username* follows.
+
+        Each entry contains ``pk``, ``username``, ``full_name``,
+        ``is_private``, ``is_verified``, and ``profile_pic_url``.
+        """
+        return await self._get_followers_or_following(
+            username, "following", max_count=max_count, callbacks=callbacks,
+        )
+
+    # -- User posts ------------------------------------------------------------
     async def scrape_user_posts(
         self,
         username: str,
