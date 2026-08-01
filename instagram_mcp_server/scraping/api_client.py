@@ -210,18 +210,14 @@ class InstagramAPIClient:
                 else:
                     resp = await self._client.request(method, url, params=params)
             except httpx.TimeoutException:
-                logger.warning(
-                    "API timeout on %s (attempt %d/%d)", path, attempt + 1, retries
-                )
+                logger.warning("API timeout on %s (attempt %d/%d)", path, attempt + 1, retries)
                 if attempt < retries - 1:
                     await self._sleep(2**attempt)
                     continue
                 raise
 
             if resp.status_code == 429:
-                logger.warning(
-                    "Rate-limited (429) on %s — sleeping %ds", path, _RATE_LIMIT_SLEEP
-                )
+                logger.warning("Rate-limited (429) on %s — sleeping %ds", path, _RATE_LIMIT_SLEEP)
                 if attempt < retries - 1:
                     await self._sleep(_RATE_LIMIT_SLEEP)
                     continue
@@ -235,17 +231,13 @@ class InstagramAPIClient:
                         "Instagram session expired. Run --login to re-authenticate."
                     )
                 if body and body.get("message") == "checkpoint_required":
-                    raise AuthenticationError(
-                        "Instagram checkpoint — manual login needed"
-                    )
+                    raise AuthenticationError("Instagram checkpoint — manual login needed")
                 raise RateLimitError(f"HTTP 403: {body or resp.text[:200]}")
 
             if resp.status_code == 400:
                 body = _safe_json(resp)
                 if body and body.get("message") == "bad_password":
-                    raise AuthenticationError(
-                        "Invalid session — cookies may be expired"
-                    )
+                    raise AuthenticationError("Invalid session — cookies may be expired")
                 if body and body.get("message"):
                     raise AuthenticationError(body["message"])
                 raise AuthenticationError(f"API error: {resp.text[:200]}")
@@ -260,14 +252,10 @@ class InstagramAPIClient:
         logger.error(msg)
         raise AuthenticationError(msg)
 
-    async def _get(
-        self, path: str, params: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    async def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self._request("GET", path, params=params)
 
-    async def _post(
-        self, path: str, data: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    async def _post(self, path: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self._request("POST", path, data=data)
 
     @staticmethod
@@ -276,10 +264,8 @@ class InstagramAPIClient:
 
     async def _resolve_user_id(self, username: str) -> str:
         """Get Instagram user ID for *username* via ``web_profile_info``."""
-        body = await self._get(
-            "/users/web_profile_info/", params={"username": username}
-        )
-        user = body.get("data", {}).get("user", {})
+        body = await self._get("/users/web_profile_info/", params={"username": username})
+        user = body.get("data", {}).get("user") or {}
         uid = user.get("id")
         if not uid:
             raise AuthenticationError(f"Could not resolve user id for @{username}")
@@ -303,10 +289,9 @@ class InstagramAPIClient:
     async def validate_session(self) -> bool:
         """Check whether the current cookies produce an authenticated response."""
         try:
-            body = await self._get(
-                "/users/web_profile_info/", params={"username": "instagram"}
-            )
-            return body.get("data", {}).get("user", {}).get("id") is not None
+            body = await self._get("/users/web_profile_info/", params={"username": "instagram"})
+            user = body.get("data", {}).get("user")
+            return bool(user and user.get("id"))
         except Exception:
             return False
 
@@ -333,9 +318,7 @@ class InstagramAPIClient:
             requested = set(USER_SECTIONS.keys())
 
         await self._resolve_user_id_cached(username)
-        body = await self._get(
-            "/users/web_profile_info/", params={"username": username}
-        )
+        body = await self._get("/users/web_profile_info/", params={"username": username})
         user = body.get("data", {}).get("user", {})
         if not user:
             return profile
@@ -363,9 +346,7 @@ class InstagramAPIClient:
 
         # Posts section
         if "posts" in requested:
-            posts = await self.scrape_user_posts(
-                username, max_posts=12, callbacks=callbacks
-            )
+            posts = await self.scrape_user_posts(username, max_posts=12, callbacks=callbacks)
             profile["sections"]["posts"] = posts.get("sections", {}).get("posts", "")
             profile["references"].update(posts.get("references", {}))
             if posts.get("posts"):
@@ -373,9 +354,7 @@ class InstagramAPIClient:
 
         # Reels section
         if "reels" in requested:
-            reels = await self.scrape_user_reels(
-                username, max_reels=12, callbacks=callbacks
-            )
+            reels = await self.scrape_user_reels(username, max_reels=12, callbacks=callbacks)
             profile["sections"]["reels"] = reels.get("sections", {}).get("reels", "")
             profile["references"].update(reels.get("references", {}))
             if reels.get("reels"):
@@ -384,23 +363,15 @@ class InstagramAPIClient:
         # Stories section
         if "stories" in requested:
             stories = await self.scrape_user_stories(username, callbacks=callbacks)
-            profile["sections"]["stories"] = stories.get("sections", {}).get(
-                "stories", ""
-            )
+            profile["sections"]["stories"] = stories.get("sections", {}).get("stories", "")
             profile["references"].update(stories.get("references", {}))
             if stories.get("stories"):
-                profile["sections"]["stories_json"] = json.dumps(
-                    stories["stories"], indent=2
-                )
+                profile["sections"]["stories_json"] = json.dumps(stories["stories"], indent=2)
 
         # Highlights section
         if "highlights" in requested:
-            highlights = await self.scrape_user_highlights(
-                username, callbacks=callbacks
-            )
-            profile["sections"]["highlights"] = highlights.get("sections", {}).get(
-                "highlights", ""
-            )
+            highlights = await self.scrape_user_highlights(username, callbacks=callbacks)
+            profile["sections"]["highlights"] = highlights.get("sections", {}).get("highlights", "")
             profile["references"].update(highlights.get("references", {}))
         # Followers / following — call real API instead of returning counts
         if "followers" in requested:
@@ -472,7 +443,10 @@ class InstagramAPIClient:
                     soft_block_retries += 1
                     logger.warning(
                         "Soft-blocked on %s page %d — sleeping %ds (retry %d/3)",
-                        endpoint, page_count + 1, _SOFT_BLOCK_SLEEP, soft_block_retries,
+                        endpoint,
+                        page_count + 1,
+                        _SOFT_BLOCK_SLEEP,
+                        soft_block_retries,
                     )
                     await self._sleep(_SOFT_BLOCK_SLEEP)
                     continue
@@ -484,14 +458,16 @@ class InstagramAPIClient:
                 break
 
             for u in page_users:
-                users.append({
-                    "pk": u.get("pk"),
-                    "username": u.get("username", ""),
-                    "full_name": u.get("full_name", ""),
-                    "is_private": u.get("is_private", False),
-                    "is_verified": u.get("is_verified", False),
-                    "profile_pic_url": u.get("profile_pic_url", ""),
-                })
+                users.append(
+                    {
+                        "pk": u.get("pk"),
+                        "username": u.get("username", ""),
+                        "full_name": u.get("full_name", ""),
+                        "is_private": u.get("is_private", False),
+                        "is_verified": u.get("is_verified", False),
+                        "profile_pic_url": u.get("profile_pic_url", ""),
+                    }
+                )
                 if len(users) >= limit:
                     break
 
@@ -505,7 +481,10 @@ class InstagramAPIClient:
                 jitter = random.uniform(_JITTER_MIN, _JITTER_MAX)
                 logger.debug(
                     "Jitter %.1fs before page %d (%d/%d users)",
-                    jitter, page_count + 1, len(users), limit,
+                    jitter,
+                    page_count + 1,
+                    len(users),
+                    limit,
                 )
                 await self._sleep(jitter)
 
@@ -529,7 +508,10 @@ class InstagramAPIClient:
         ``is_private``, ``is_verified``, and ``profile_pic_url``.
         """
         return await self._get_followers_or_following(
-            username, "followers", max_count=max_count, callbacks=callbacks,
+            username,
+            "followers",
+            max_count=max_count,
+            callbacks=callbacks,
         )
 
     async def get_following(
@@ -544,7 +526,10 @@ class InstagramAPIClient:
         ``is_private``, ``is_verified``, and ``profile_pic_url``.
         """
         return await self._get_followers_or_following(
-            username, "following", max_count=max_count, callbacks=callbacks,
+            username,
+            "following",
+            max_count=max_count,
+            callbacks=callbacks,
         )
 
     # -- User posts ------------------------------------------------------------
@@ -583,9 +568,7 @@ class InstagramAPIClient:
                     "shortcode": code,
                     "url": f"https://www.instagram.com/p/{code}/",
                     "thumbnail": (
-                        item.get("image_versions2", {})
-                        .get("candidates", [{}])[0]
-                        .get("url", "")
+                        item.get("image_versions2", {}).get("candidates", [{}])[0].get("url", "")
                     ),
                     "media_type": item.get("media_type", 1),
                     "caption": ((item.get("caption") or {}).get("text") or ""),
@@ -681,8 +664,7 @@ class InstagramAPIClient:
                             .get("candidates", [{}])[0]
                             .get("url", "")
                         ),
-                        "play_count": media.get("play_count", 0)
-                        or media.get("view_count", 0),
+                        "play_count": media.get("play_count", 0) or media.get("view_count", 0),
                         "like_count": media.get("like_count", 0),
                         "comment_count": media.get("comment_count", 0),
                         "caption": ((media.get("caption") or {}).get("text") or ""),
@@ -709,8 +691,7 @@ class InstagramAPIClient:
             "reels", reels_list, ["shortcode", "play_count", "like_count"]
         )
         result["references"]["reels"] = [
-            {"kind": "reel", "url": r["url"], "text": r["caption"][:120]}
-            for r in reels_list
+            {"kind": "reel", "url": r["url"], "text": r["caption"][:120]} for r in reels_list
         ]
         return result
 
@@ -738,9 +719,7 @@ class InstagramAPIClient:
                     "id": str(item.get("id", "")).split("_")[0],
                     "media_type": item.get("media_type", 1),
                     "url": (
-                        item.get("image_versions2", {})
-                        .get("candidates", [{}])[0]
-                        .get("url", "")
+                        item.get("image_versions2", {}).get("candidates", [{}])[0].get("url", "")
                     ),
                     "video_url": (
                         item.get("video_versions", [{}])[0].get("url", "")
@@ -774,9 +753,7 @@ class InstagramAPIClient:
                     )
                 for so in item.get("story_mentions", []):
                     user = so.get("user", {})
-                    story_links.append(
-                        {"kind": "mention", "username": user.get("username", "")}
-                    )
+                    story_links.append({"kind": "mention", "username": user.get("username", "")})
                 if story_links:
                     story_entry["tappable_objects"] = story_links
                 # Audio metadata
@@ -789,9 +766,7 @@ class InstagramAPIClient:
                 stories.append(story_entry)
             result["stories"] = stories
             result["sections"]["stories"] = (
-                f"User has {len(stories)} active story item(s)"
-                if stories
-                else "No active stories"
+                f"User has {len(stories)} active story item(s)" if stories else "No active stories"
             )
         except Exception:
             logger.warning("Failed to fetch stories for %s", username, exc_info=True)
@@ -870,9 +845,7 @@ class InstagramAPIClient:
                 "comment_count": m.get("comment_count", 0),
                 "taken_at": m.get("taken_at", 0),
                 "media_url": (
-                    m.get("image_versions2", {})
-                    .get("candidates", [{}])[0]
-                    .get("url", "")
+                    m.get("image_versions2", {}).get("candidates", [{}])[0].get("url", "")
                 ),
                 "video_url": (
                     m.get("video_versions", [{}])[0].get("url", "")
@@ -889,9 +862,7 @@ class InstagramAPIClient:
             if m.get("product_type"):
                 details["product_type"] = m["product_type"]
 
-            audio = m.get("music_metadata", {}) or m.get("clips_metadata", {}).get(
-                "music_info", {}
-            )
+            audio = m.get("music_metadata", {}) or m.get("clips_metadata", {}).get("music_info", {})
             if audio:
                 details["audio"] = audio.get("music_asset_info", {}).get("title", "")
 
@@ -903,9 +874,7 @@ class InstagramAPIClient:
                     {
                         "media_type": cm.get("media_type", 1),
                         "thumbnail": (
-                            cm.get("image_versions2", {})
-                            .get("candidates", [{}])[0]
-                            .get("url", "")
+                            cm.get("image_versions2", {}).get("candidates", [{}])[0].get("url", "")
                         ),
                         "video_url": (
                             cm.get("video_versions", [{}])[0].get("url", "")
@@ -968,9 +937,7 @@ class InstagramAPIClient:
                 comment_lines = []
                 for c in comments:
                     user = c.get("user", {})
-                    comment_lines.append(
-                        f"@{user.get('username', '?')}: {c.get('text', '')}"
-                    )
+                    comment_lines.append(f"@{user.get('username', '?')}: {c.get('text', '')}")
                 result["sections"]["comments"] = (
                     "\n".join(comment_lines) if comment_lines else "(no comments)"
                 )
@@ -987,9 +954,7 @@ class InstagramAPIClient:
                 ]
 
         except Exception:
-            logger.warning(
-                "Failed to fetch post details for %s", post_url, exc_info=True
-            )
+            logger.warning("Failed to fetch post details for %s", post_url, exc_info=True)
 
         return result
 
@@ -1006,9 +971,7 @@ class InstagramAPIClient:
             "references": {},
         }
         try:
-            body = await self._get(
-                "/users/search/", params={"q": query, "count": max_results}
-            )
+            body = await self._get("/users/search/", params={"q": query, "count": max_results})
             users = body.get("users", [])
             refs: list[dict[str, Any]] = []
             lines: list[str] = []
@@ -1046,9 +1009,7 @@ class InstagramAPIClient:
                 "/locations/search/",
                 params={"search_query": query, "count": max_results},
             )
-            venues = (
-                body.get("venues", []) if "venues" in body else body.get("items", [])
-            )
+            venues = body.get("venues", []) if "venues" in body else body.get("items", [])
             lines: list[str] = []
             refs: list[dict[str, Any]] = []
             for v in venues[:max_results]:
@@ -1063,9 +1024,7 @@ class InstagramAPIClient:
                         "text": name,
                     }
                 )
-            result["sections"]["locations"] = (
-                "\n".join(lines) if lines else "(no results)"
-            )
+            result["sections"]["locations"] = "\n".join(lines) if lines else "(no results)"
             result["references"]["locations"] = refs
         except Exception:
             logger.warning("Search locations failed for %r", query, exc_info=True)
@@ -1086,9 +1045,7 @@ class InstagramAPIClient:
             "references": {},
         }
         try:
-            body = await self._get(
-                f"/tags/{tag}/media/recent/", params={"count": max_posts}
-            )
+            body = await self._get(f"/tags/{tag}/media/recent/", params={"count": max_posts})
             sections = body.get("sections", []) or body.get("medias", [])
             items: list[dict] = []
             for sec in sections:
@@ -1183,9 +1140,7 @@ class InstagramAPIClient:
                     }
                 )
             result["posts"] = posts_data
-            result["sections"]["posts"] = _sections_text(
-                "posts", posts_data, ["shortcode"]
-            )
+            result["sections"]["posts"] = _sections_text("posts", posts_data, ["shortcode"])
             result["references"]["posts"] = refs
         except Exception:
             logger.warning("Location posts failed for %s", location_id, exc_info=True)
@@ -1218,9 +1173,7 @@ class InstagramAPIClient:
                         "username": other.get("username", ""),
                         "full_name": other.get("full_name", ""),
                         "profile_pic": other.get("profile_pic_url", ""),
-                        "last_message": (
-                            t.get("last_permanent_item", {}).get("text", "") or ""
-                        ),
+                        "last_message": (t.get("last_permanent_item", {}).get("text", "") or ""),
                         "last_activity": t.get("last_activity_at", 0),
                     }
                 )
@@ -1254,9 +1207,7 @@ class InstagramAPIClient:
                     thread_id = t.get("thread_id", "")
                     break
             if not thread_id:
-                result["sections"]["messages"] = (
-                    f"No conversation found with @{username}"
-                )
+                result["sections"]["messages"] = f"No conversation found with @{username}"
                 return result
 
         try:
@@ -1382,9 +1333,7 @@ class InstagramAPIClient:
             body = await self._post(f"/media/{media_id}/like/")
             result["status"] = "ok" if body.get("status") == "ok" else "error"
             result["message"] = (
-                f"Liked {post_url}"
-                if result["status"] == "ok"
-                else f"Like failed: {body}"
+                f"Liked {post_url}" if result["status"] == "ok" else f"Like failed: {body}"
             )
         except Exception as e:
             result["message"] = str(e)
@@ -1408,9 +1357,7 @@ class InstagramAPIClient:
             body = await self._post(f"/media/{media_id}/unlike/")
             result["status"] = "ok" if body.get("status") == "ok" else "error"
             result["message"] = (
-                f"Unliked {post_url}"
-                if result["status"] == "ok"
-                else f"Unlike failed: {body}"
+                f"Unliked {post_url}" if result["status"] == "ok" else f"Unlike failed: {body}"
             )
         except Exception as e:
             result["message"] = str(e)
@@ -1461,9 +1408,7 @@ class InstagramAPIClient:
             result["message"] = f"Could not parse media from {post_url}"
             return result
         try:
-            body = await self._post(
-                f"/media/{media_id}/comment/", data={"comment_text": comment}
-            )
+            body = await self._post(f"/media/{media_id}/comment/", data={"comment_text": comment})
             if body.get("status") == "ok":
                 result["status"] = "ok"
                 result["message"] = f"Commented on {post_url}"
@@ -1553,9 +1498,7 @@ class InstagramAPIClient:
                     f"Insights type '{insight_type}' — data available on Instagram dashboard."
                 )
 
-            result["sections"][insight_type] = (
-                "\n".join(lines) if lines else "(no insight data)"
-            )
+            result["sections"][insight_type] = "\n".join(lines) if lines else "(no insight data)"
         except Exception:
             logger.warning("Failed to fetch %s insights", insight_type, exc_info=True)
         return result
@@ -1574,9 +1517,7 @@ class InstagramAPIClient:
         }
         try:
             # Instagram's search is unified — tags come in the same response
-            body = await self._get(
-                "/users/search/", params={"q": query, "count": max_results}
-            )
+            body = await self._get("/users/search/", params={"q": query, "count": max_results})
             # Check for tags in the response (they sometimes come under "hashtags")
             tags = body.get("hashtags", [])
             lines: list[str] = []
@@ -1597,13 +1538,9 @@ class InstagramAPIClient:
                             f"/tags/{name}/media/recent/", params={"count": 3}
                         )
                         media_items = []
-                        sections = preview.get("sections", []) or preview.get(
-                            "medias", []
-                        )
+                        sections = preview.get("sections", []) or preview.get("medias", [])
                         for sec in sections:
-                            for m in (
-                                sec.get("media", sec) if isinstance(sec, dict) else sec
-                            ):
+                            for m in sec.get("media", sec) if isinstance(sec, dict) else sec:
                                 node = m.get("media", m) if isinstance(m, dict) else m
                                 if node.get("code"):
                                     media_items.append(
@@ -1627,9 +1564,7 @@ class InstagramAPIClient:
                 refs.append(ref_entry)
             if not tags:
                 # Fallback: try the explore/tag search API
-                body2 = await self._get(
-                    "/tags/search/", params={"q": query, "count": max_results}
-                )
+                body2 = await self._get("/tags/search/", params={"q": query, "count": max_results})
                 results = body2.get("results", [])
                 for t in results[:max_results]:
                     name = t.get("name", "")
@@ -1649,18 +1584,10 @@ class InstagramAPIClient:
                                 f"/tags/{name}/media/recent/", params={"count": 3}
                             )
                             media_items = []
-                            sections = preview.get("sections", []) or preview.get(
-                                "medias", []
-                            )
+                            sections = preview.get("sections", []) or preview.get("medias", [])
                             for sec in sections:
-                                for m in (
-                                    sec.get("media", sec)
-                                    if isinstance(sec, dict)
-                                    else sec
-                                ):
-                                    node = (
-                                        m.get("media", m) if isinstance(m, dict) else m
-                                    )
+                                for m in sec.get("media", sec) if isinstance(sec, dict) else sec:
+                                    node = m.get("media", m) if isinstance(m, dict) else m
                                     if node.get("code"):
                                         media_items.append(
                                             {
@@ -1680,9 +1607,7 @@ class InstagramAPIClient:
                                 refs[-1]["recent_posts"] = media_items
                         except Exception:
                             pass
-            result["sections"]["hashtags"] = (
-                "\n".join(lines) if lines else "(no results)"
-            )
+            result["sections"]["hashtags"] = "\n".join(lines) if lines else "(no results)"
             result["references"]["hashtags"] = refs
         except Exception:
             logger.warning("Search hashtags failed for %r", query, exc_info=True)

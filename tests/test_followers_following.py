@@ -333,6 +333,60 @@ class TestAntiBotMeasures:
             await client.get_followers("testuser", max_count=10)
 
     @pytest.mark.asyncio
+    async def test_ratelimit_error_propagates(self):
+        """RateLimitError (from HTTP 429 exhaustion) propagates without retry."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+
+        from instagram_mcp_server.core.exceptions import RateLimitError
+
+        async def _mock_get(path, params=None):
+            raise RateLimitError("Instagram rate-limited this request")
+
+        client._get = _mock_get
+
+        with pytest.raises(RateLimitError, match="rate-limited"):
+            await client.get_followers("testuser", max_count=10)
+
+    @pytest.mark.asyncio
+    async def test_soft_block_counter_resets_after_success(self):
+        """Soft-block counter resets to 0 after a successful page fetch."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+
+        from instagram_mcp_server.core.exceptions import AuthenticationError
+
+        call_count = 0
+
+        async def _mock_get(path, params=None):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise AuthenticationError("please_wait_a_few_minutes")
+            if call_count == 2:
+                # Success — counter should reset
+                return _paginate_response([_make_user(1, "a")], max_id="next")
+            if call_count == 3:
+                # Another soft-block — should be retried since counter reset
+                raise AuthenticationError("please_wait_a_few_minutes")
+            return _paginate_response([_make_user(2, "b")])
+
+        client._get = _mock_get
+
+        sleep_calls = []
+
+        async def _mock_sleep(secs):
+            sleep_calls.append(secs)
+
+        with patch.object(client, "_sleep", side_effect=_mock_sleep):
+            result = await client.get_followers("testuser", max_count=10)
+
+        # Both soft-blocks should have been retried, total 2 successes
+        assert result["total"] == 2
+        soft_block_sleeps = [s for s in sleep_calls if s >= _SOFT_BLOCK_SLEEP]
+        assert len(soft_block_sleeps) == 2  # one per soft-block
+
+    @pytest.mark.asyncio
     async def test_randomised_page_size(self):
         """Page size uses random.randint, not a fixed value."""
         client = _make_client()
@@ -551,3 +605,93 @@ class TestScrapeUserFollowersIntegration:
                 result = await client.scrape_user("testuser", requested={"followers"})
 
         assert "has more" in result["sections"]["followers"]
+
+
+# ---------------------------------------------------------------------------
+# Edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestEdgeCases:
+    """Stress-test boundary conditions."""
+
+    @pytest.mark.asyncio
+    async def test_user_id_resolution_failure(self):
+        """User not found → AuthenticationError propagated."""
+        client = _make_client()
+        client._get = AsyncMock(return_value={"data": {"user": None}})
+
+        from instagram_mcp_server.core.exceptions import AuthenticationError
+
+        with pytest.raises(AuthenticationError, match="Could not resolve user id"):
+            await client.get_followers("nonexistent_user", max_count=10)
+
+    @pytest.mark.asyncio
+    async def test_empty_cursor_stops_pagination(self):
+        """If next_max_id is empty string (not None), pagination stops."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+        client._get = AsyncMock(return_value={"users": [_make_user(1, "a")], "next_max_id": ""})
+
+        with patch.object(client, "_sleep", new_callable=AsyncMock):
+            result = await client.get_followers("testuser", max_count=10)
+
+        assert result["has_more"] is False
+        assert result["total"] == 1
+
+    @pytest.mark.asyncio
+    async def test_exactly_at_limit_stops(self):
+        """When user count exactly equals max_count, pagination stops."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+
+        users = [_make_user(i, f"u{i}") for i in range(50)]
+        client._get = AsyncMock(return_value=_paginate_response(users, max_id="more"))
+
+        with patch.object(client, "_sleep", new_callable=AsyncMock):
+            result = await client.get_followers("testuser", max_count=50)
+
+        assert result["total"] == 50
+        assert result["has_more"] is True
+
+    @pytest.mark.asyncio
+    async def test_max_count_1(self):
+        """Single user requested."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+        client._get = AsyncMock(
+            return_value=_paginate_response([_make_user(1, "only")], max_id="more")
+        )
+
+        with patch.object(client, "_sleep", new_callable=AsyncMock):
+            result = await client.get_followers("testuser", max_count=1)
+
+        assert result["total"] == 1
+        assert result["users"][0]["username"] == "only"
+
+    @pytest.mark.asyncio
+    async def test_pages_fetched_count_accurate(self):
+        """pages_fetched matches the number of API calls that returned users."""
+        client = _make_client()
+        client._user_id_cache = {"testuser": "999"}
+
+        page_count = 0
+
+        async def _mock_get(path, params=None):
+            nonlocal page_count
+            page_count += 1
+            if page_count <= 3:
+                return _paginate_response(
+                    [_make_user(page_count, f"u{page_count}")],
+                    max_id="next",
+                )
+            return _paginate_response([])
+
+        client._get = _mock_get
+
+        with patch("instagram_mcp_server.scraping.api_client.random.randint", return_value=50):
+            with patch.object(client, "_sleep", new_callable=AsyncMock):
+                result = await client.get_followers("testuser", max_count=100)
+
+        assert result["pages_fetched"] == 3
+        assert result["total"] == 3

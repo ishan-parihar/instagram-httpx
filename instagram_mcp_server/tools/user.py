@@ -63,7 +63,9 @@ def register_user_tools(mcp: FastMCP) -> None:
             Includes unknown_sections list when unrecognised names are passed.
             The LLM should parse the raw text in each section.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_profile", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_profile", account_id=account_id
+        )
         requested, unknown = parse_user_sections(sections)
 
         logger.info(
@@ -111,7 +113,9 @@ def register_user_tools(mcp: FastMCP) -> None:
             Dict with url, posts list, total_posts count, sections, and references.
             Each post has: id, shortcode, url, thumbnail_url, media_type.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_posts", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_posts", account_id=account_id
+        )
 
         logger.info(
             "Scraping user posts: %s (max_posts=%d)",
@@ -120,9 +124,7 @@ def register_user_tools(mcp: FastMCP) -> None:
         )
 
         cb = MCPContextProgressCallback(ctx)
-        result = await extractor.scrape_user_posts(
-            username, max_posts, callbacks=cb
-        )
+        result = await extractor.scrape_user_posts(username, max_posts, callbacks=cb)
 
         # --- Media download / frame extraction ---
         download_dir = None
@@ -150,36 +152,34 @@ def register_user_tools(mcp: FastMCP) -> None:
                     thumb_url = post.get("thumbnail", "")
                     if thumb_url:
                         thumb_path = item_dir / "thumbnail.jpg"
-                        if await _download_media(
-                            thumb_url, thumb_path, extractor._cookies
-                        ):
-                            downloaded_media.append({
-                                "post_id": post_id,
-                                "shortcode": post.get("shortcode", ""),
-                                "type": "thumbnail",
-                                "path": str(thumb_path),
-                            })
+                        if await _download_media(thumb_url, thumb_path, extractor._cookies):
+                            downloaded_media.append(
+                                {
+                                    "post_id": post_id,
+                                    "shortcode": post.get("shortcode", ""),
+                                    "type": "thumbnail",
+                                    "path": str(thumb_path),
+                                }
+                            )
 
                     # For reels/videos (media_type 2), also attempt full video download when extracting frames
                     if post.get("media_type") in (2,) and (extract_frames):
                         try:
-                            details = await extractor.get_post_details(
-                                post.get("url", "")
-                            )
+                            details = await extractor.get_post_details(post.get("url", ""))
                             pd = details.get("post_details", {})
                             video_url = pd.get("video_url", "")
                             if video_url:
                                 video_path = item_dir / "video.mp4"
-                                if await _download_media(
-                                    video_url, video_path, extractor._cookies
-                                ):
+                                if await _download_media(video_url, video_path, extractor._cookies):
                                     if download_media:
-                                        downloaded_media.append({
-                                            "post_id": post_id,
-                                            "shortcode": post.get("shortcode", ""),
-                                            "type": "video",
-                                            "path": str(video_path),
-                                        })
+                                        downloaded_media.append(
+                                            {
+                                                "post_id": post_id,
+                                                "shortcode": post.get("shortcode", ""),
+                                                "type": "video",
+                                                "path": str(video_path),
+                                            }
+                                        )
                                     # Extract frames from video
                                     if extract_frames:
                                         frames_dir = item_dir / "frames"
@@ -189,15 +189,19 @@ def register_user_tools(mcp: FastMCP) -> None:
                                             fps=1.0,
                                         )
                                         if frames:
-                                            frame_dirs.append({
-                                                "post_id": post_id,
-                                                "shortcode": post.get("shortcode", ""),
-                                                "frame_dir": str(frames_dir),
-                                                "frames": [str(f) for f in frames],
-                                                "fps": 1.0,
-                                                "total_frames": len(frames),
-                                                "video_duration": get_video_duration(video_path),
-                                            })
+                                            frame_dirs.append(
+                                                {
+                                                    "post_id": post_id,
+                                                    "shortcode": post.get("shortcode", ""),
+                                                    "frame_dir": str(frames_dir),
+                                                    "frames": [str(f) for f in frames],
+                                                    "fps": 1.0,
+                                                    "total_frames": len(frames),
+                                                    "video_duration": get_video_duration(
+                                                        video_path
+                                                    ),
+                                                }
+                                            )
                         except Exception as e:
                             logger.warning("Frame extraction failed for %s: %s", post_id, e)
 
@@ -207,15 +211,15 @@ def register_user_tools(mcp: FastMCP) -> None:
                         thumb_url = cm.get("thumbnail", "")
                         if thumb_url:
                             car_path = item_dir / f"carousel_{ci}.jpg"
-                            if await _download_media(
-                                thumb_url, car_path, extractor._cookies
-                            ):
-                                downloaded_media.append({
-                                    "post_id": post_id,
-                                    "shortcode": post.get("shortcode", ""),
-                                    "type": f"carousel_{ci}",
-                                    "path": str(car_path),
-                                })
+                            if await _download_media(thumb_url, car_path, extractor._cookies):
+                                downloaded_media.append(
+                                    {
+                                        "post_id": post_id,
+                                        "shortcode": post.get("shortcode", ""),
+                                        "type": f"carousel_{ci}",
+                                        "path": str(car_path),
+                                    }
+                                )
 
         if downloaded_media or frame_dirs:
             result["download_dir"] = download_dir
@@ -261,7 +265,9 @@ def register_user_tools(mcp: FastMCP) -> None:
             Each reel has: id, shortcode, url, thumbnail_url, view_count_text, media_type.
             Use `get_post_details` on individual reel URLs for full engagement data.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_reels", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_reels", account_id=account_id
+        )
 
         logger.info(
             "Scraping user reels: %s (max_reels=%d)",
@@ -270,9 +276,7 @@ def register_user_tools(mcp: FastMCP) -> None:
         )
 
         cb = MCPContextProgressCallback(ctx)
-        result = await extractor.scrape_user_reels(
-            username, max_reels, callbacks=cb
-        )
+        result = await extractor.scrape_user_reels(username, max_reels, callbacks=cb)
 
         # --- Media download / frame extraction ---
         download_dir = None
@@ -300,15 +304,19 @@ def register_user_tools(mcp: FastMCP) -> None:
                 if download_media and thumb_url:
                     thumb_path = item_dir / "thumbnail.jpg"
                     if await _download_media(thumb_url, thumb_path, extractor._cookies):
-                        downloaded_media.append({
-                            "reel_id": reel_id,
-                            "shortcode": reel.get("shortcode", ""),
-                            "type": "thumbnail",
-                            "path": str(thumb_path),
-                        })
+                        downloaded_media.append(
+                            {
+                                "reel_id": reel_id,
+                                "shortcode": reel.get("shortcode", ""),
+                                "type": "thumbnail",
+                                "path": str(thumb_path),
+                            }
+                        )
 
                 # For full video: needed for frames or if download_media wants the full video
-                if extract_frames or (download_media and reel.get("play_count", 0) > 0 and thumb_url):
+                if extract_frames or (
+                    download_media and reel.get("play_count", 0) > 0 and thumb_url
+                ):
                     try:
                         details = await extractor.get_post_details(reel.get("url", ""))
                         pd = details.get("post_details", {})
@@ -319,31 +327,40 @@ def register_user_tools(mcp: FastMCP) -> None:
                         video_path = item_dir / "video.mp4"
                         if await _download_media(video_url, video_path, extractor._cookies):
                             if download_media:
-                                downloaded_media.append({
-                                    "reel_id": reel_id,
-                                    "shortcode": reel.get("shortcode", ""),
-                                    "type": "video",
-                                    "path": str(video_path),
-                                })
+                                downloaded_media.append(
+                                    {
+                                        "reel_id": reel_id,
+                                        "shortcode": reel.get("shortcode", ""),
+                                        "type": "video",
+                                        "path": str(video_path),
+                                    }
+                                )
 
                             if extract_frames:
                                 frames_dir = item_dir / "frames"
                                 duration = get_video_duration(video_path)
                                 # Adaptive FPS: ensure we get at least 3 frames but no more than 60
-                                adaptive_fps = max(0.2, min(1.0, 60.0 / duration)) if duration > 0 else 1.0
+                                adaptive_fps = (
+                                    max(0.2, min(1.0, 60.0 / duration)) if duration > 0 else 1.0
+                                )
                                 frames = _extract_frames(
-                                    video_path, frames_dir, fps=adaptive_fps, max_frames=60,
+                                    video_path,
+                                    frames_dir,
+                                    fps=adaptive_fps,
+                                    max_frames=60,
                                 )
                                 if frames:
-                                    frame_dirs.append({
-                                        "reel_id": reel_id,
-                                        "shortcode": reel.get("shortcode", ""),
-                                        "frame_dir": str(frames_dir),
-                                        "frames": [str(f) for f in frames],
-                                        "fps": adaptive_fps,
-                                        "total_frames": len(frames),
-                                        "video_duration": duration,
-                                    })
+                                    frame_dirs.append(
+                                        {
+                                            "reel_id": reel_id,
+                                            "shortcode": reel.get("shortcode", ""),
+                                            "frame_dir": str(frames_dir),
+                                            "frames": [str(f) for f in frames],
+                                            "fps": adaptive_fps,
+                                            "total_frames": len(frames),
+                                            "video_duration": duration,
+                                        }
+                                    )
                     except Exception as e:
                         logger.warning("Video processing failed for reel %s: %s", reel_id, e)
 
@@ -385,13 +402,13 @@ def register_user_tools(mcp: FastMCP) -> None:
             Dict with url and stories list, where each story has:
             media_url, timestamp, expires_at.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_stories", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_stories", account_id=account_id
+        )
 
         logger.info("Scraping user stories: %s", username)
 
-        await ctx.report_progress(
-            progress=0, total=100, message="Fetching active stories"
-        )
+        await ctx.report_progress(progress=0, total=100, message="Fetching active stories")
 
         result = await extractor.scrape_user_stories(username)
 
@@ -424,11 +441,13 @@ def register_user_tools(mcp: FastMCP) -> None:
                     if img_url:
                         img_path = item_dir / "image.jpg"
                         if await _download_media(img_url, img_path, extractor._cookies):
-                            downloaded_media.append({
-                                "story_id": story_id,
-                                "type": "image",
-                                "path": str(img_path),
-                            })
+                            downloaded_media.append(
+                                {
+                                    "story_id": story_id,
+                                    "type": "image",
+                                    "path": str(img_path),
+                                }
+                            )
 
                 # Handle video stories
                 if mt == 2:
@@ -437,27 +456,36 @@ def register_user_tools(mcp: FastMCP) -> None:
                         video_path = item_dir / "video.mp4"
                         if await _download_media(video_url, video_path, extractor._cookies):
                             if download_media:
-                                downloaded_media.append({
-                                    "story_id": story_id,
-                                    "type": "video",
-                                    "path": str(video_path),
-                                })
+                                downloaded_media.append(
+                                    {
+                                        "story_id": story_id,
+                                        "type": "video",
+                                        "path": str(video_path),
+                                    }
+                                )
                             if extract_frames:
                                 frames_dir = item_dir / "frames"
                                 duration = get_video_duration(video_path)
-                                adaptive_fps = max(0.2, min(1.0, 60.0 / duration)) if duration > 0 else 1.0
+                                adaptive_fps = (
+                                    max(0.2, min(1.0, 60.0 / duration)) if duration > 0 else 1.0
+                                )
                                 frames = _extract_frames(
-                                    video_path, frames_dir, fps=adaptive_fps, max_frames=30,
+                                    video_path,
+                                    frames_dir,
+                                    fps=adaptive_fps,
+                                    max_frames=30,
                                 )
                                 if frames:
-                                    frame_dirs.append({
-                                        "story_id": story_id,
-                                        "frame_dir": str(frames_dir),
-                                        "frames": [str(f) for f in frames],
-                                        "fps": adaptive_fps,
-                                        "total_frames": len(frames),
-                                        "video_duration": duration,
-                                    })
+                                    frame_dirs.append(
+                                        {
+                                            "story_id": story_id,
+                                            "frame_dir": str(frames_dir),
+                                            "frames": [str(f) for f in frames],
+                                            "fps": adaptive_fps,
+                                            "total_frames": len(frames),
+                                            "video_duration": duration,
+                                        }
+                                    )
 
         if downloaded_media or frame_dirs:
             result["download_dir"] = download_dir
@@ -495,9 +523,7 @@ def register_user_tools(mcp: FastMCP) -> None:
 
         logger.info("Scraping user highlights: %s", username)
 
-        await ctx.report_progress(
-            progress=0, total=100, message="Extracting story highlights"
-        )
+        await ctx.report_progress(progress=0, total=100, message="Extracting story highlights")
 
         result = await extractor.scrape_user_highlights(username)
 
@@ -532,7 +558,9 @@ def register_user_tools(mcp: FastMCP) -> None:
             profile_pic_url), total count, pages_fetched, and has_more flag.
             Anti-bot jitter is applied between pages to protect session validity.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_followers", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_followers", account_id=account_id
+        )
 
         logger.info("Fetching followers for: %s (max=%d)", username, max_count)
         await ctx.report_progress(progress=0, total=100, message="Fetching followers...")
@@ -570,7 +598,9 @@ def register_user_tools(mcp: FastMCP) -> None:
             profile_pic_url), total count, pages_fetched, and has_more flag.
             Anti-bot jitter is applied between pages to protect session validity.
         """
-        extractor = await get_ready_extractor(ctx, tool_name="get_user_following", account_id=account_id)
+        extractor = await get_ready_extractor(
+            ctx, tool_name="get_user_following", account_id=account_id
+        )
 
         logger.info("Fetching following for: %s (max=%d)", username, max_count)
         await ctx.report_progress(progress=0, total=100, message="Fetching following...")
