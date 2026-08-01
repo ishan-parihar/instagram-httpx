@@ -13,7 +13,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "inquirer>=3.4.0",
     "obscura-cookie-manager @ git+https://github.com/ishan-parihar/obscura-cookie-manager.git",
-    "obscura-daemon @ file:///${PROJECT_ROOT}/../obscura-daemon",
+    "obscura-daemon @ git+https://github.com/ishan-parihar/obscura-daemon.git",
     "Pillow>=10.0.0",
     "instagrapi>=2.0.0",
 ]
