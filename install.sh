@@ -95,8 +95,8 @@ install_uv() {
 }
 
 # ── 3. Locate or clone the repo ──────────────────────────
-REPO_URL="https://github.com/ishan-parihar/instagram-httpx"
-REPO_NAME="instagram-httpx"
+REPO_URL="https://github.com/ishan-parihar/instagram-lyr"
+REPO_NAME="instagram-lyr"
 
 locate_or_clone_repo() {
     step "Locating repository"
@@ -192,7 +192,7 @@ validate_installation() {
 check_instagram_session() {
     step "Checking Instagram session"
 
-    COOKIE_PATH="$HOME/.instagram-mcp/profile/cookies.json"
+    COOKIE_PATH="$HOME/.instagram-lyr/profile/cookies.json"
     if [ -f "$COOKIE_PATH" ]; then
         success "Existing session found at ${COOKIE_PATH}"
         echo "  If session is stale, run:  uv run -m instagram_mcp_server --logout && uv run -m instagram_mcp_server --login"
@@ -262,7 +262,7 @@ print_mcp_configs() {
     echo '  "mcpServers": {'
     echo '    "instagram": {'
     echo '      "command": "uvx",'
-    echo '      "args": ["instagram-httpx"]'
+    echo '      "args": ["instagram-lyr"]'
     echo '    }'
     echo '  }'
     echo '}'
