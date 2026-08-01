@@ -72,7 +72,7 @@ class InstagramObscuraManager:
 
     def _get_storage(self) -> FileCookieStorage:
         """Get file-based cookie storage."""
-        cookie_path = Path.home() / ".instagram-mcp" / "cookies.json"
+        cookie_path = Path.home() / ".instagram-lyr" / "cookies.json"
         cookie_path.parent.mkdir(parents=True, exist_ok=True)
         return FileCookieStorage(cookie_path)
 

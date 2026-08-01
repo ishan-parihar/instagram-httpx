@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import os
 from typing import Any, NoReturn
 
 from fastmcp import Context
@@ -18,6 +20,9 @@ from instagram_mcp_server.error_handler import raise_tool_error
 from instagram_mcp_server.scraping import InstagramAPIClient
 
 logger = logging.getLogger(__name__)
+
+# Daemon integration flag
+USE_DAEMON = os.getenv("INSTAGRAM_USE_DAEMON", "true").lower() in ("1", "true", "yes", "on")
 
 
 async def handle_auth_error(
@@ -57,18 +62,18 @@ async def get_ready_extractor(
 
 def _build_api_client(account_id: str | None = None) -> InstagramAPIClient:
     """Load cookies from disk and return an :class:`InstagramAPIClient`.
-    
+
     Args:
         account_id: Optional account ID to load cookies for. If not provided,
                    uses the default/active account or falls back to legacy cookie loading.
-    
+
     Returns:
         Authenticated InstagramAPIClient instance
     """
     # Try multi-account cookies first if account_id is specified
     if account_id:
         from instagram_mcp_server.multi_account import get_account_cookies
-        
+
         cookies = get_account_cookies(account_id)
         if cookies:
             logger.info(
@@ -79,11 +84,11 @@ def _build_api_client(account_id: str | None = None) -> InstagramAPIClient:
             return InstagramAPIClient(cookies)
         else:
             logger.warning(f"Account {account_id} not found, falling back to default")
-    
+
     # Try active account if no account_id specified
     if not account_id:
         from instagram_mcp_server.multi_account import get_active_account, get_account_cookies
-        
+
         active_account = get_active_account()
         if active_account:
             cookies = get_account_cookies(active_account.account_id)
@@ -94,7 +99,22 @@ def _build_api_client(account_id: str | None = None) -> InstagramAPIClient:
                     len(cookies),
                 )
                 return InstagramAPIClient(cookies)
-    
+
+    # Try daemon cache if enabled
+    if USE_DAEMON:
+        try:
+            from instagram_mcp_server.obscura_daemon_integration import get_valid_instagram_cookies_from_daemon
+
+            result = asyncio.run(get_valid_instagram_cookies_from_daemon())
+            if result.valid and result.cookies:
+                logger.info(
+                    "API client created from daemon cache (%d cookies)",
+                    len(result.cookies),
+                )
+                return InstagramAPIClient(result.cookies)
+        except Exception as e:
+            logger.debug(f"Failed to get cookies from daemon: {e}, falling back to local")
+
     # Fallback to legacy cookie loading
     profile_dir = get_profile_dir()
     cookie_file = profile_dir / "cookies.json"
