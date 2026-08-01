@@ -33,7 +33,7 @@ def _make_client(cookies: dict[str, str] | None = None) -> InstagramAPIClient:
         cookies = {"sessionid": "12345:abc:1234567890", "csrftoken": "csrf"}
     client = InstagramAPIClient(cookies)
     client._client = AsyncMock()
-    client._client.aclose = AsyncMock()
+    client._client.close = AsyncMock()
     return client
 
 

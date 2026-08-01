@@ -33,6 +33,8 @@ TOOLS = [
     ("get_user_stories", "Get user stories"),
     ("get_user_highlights", "Get user highlights"),
     ("get_user_timeline", "Get user timeline"),
+    ("get_user_followers", "Get user followers"),
+    ("get_user_following", "Get user following"),
     ("search_users", "Search users"),
     ("follow_user", "Follow user"),
     ("unfollow_user", "Unfollow user"),

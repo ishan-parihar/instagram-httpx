@@ -11,7 +11,7 @@ import json
 import logging
 from pathlib import Path
 
-import httpx
+from curl_cffi.requests import AsyncSession as _AsyncSession
 
 from instagram_mcp_server.cookie_import import load_or_import_cookies
 from instagram_mcp_server.core import AuthenticationError
@@ -74,8 +74,9 @@ async def validate_session() -> bool:
                 "(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
             ),
         }
-        async with httpx.AsyncClient(
-            cookies=cookie_dict, headers=headers, timeout=10
+        async with _AsyncSession(
+            impersonate="chrome131",
+            cookies=cookie_dict, headers=headers, timeout=10,
         ) as client:
             resp = await client.get(
                 "https://www.instagram.com/api/v1/users/web_profile_info/"

@@ -1,6 +1,9 @@
 """
 Instagram private-web API client.  Replaces the DOM-based
-``InstagramExtractor`` with direct HTTP requests via ``httpx``.
+``InstagramExtractor`` with direct HTTP requests via ``curl_cffi``.
+
+Uses ``curl_cffi`` with Chrome TLS impersonation to avoid Instagram's
+JA3 fingerprint detection that blocks plain ``httpx``/``aiohttp``.
 
 All public methods mirror the original extractor so the tool layer
 needs zero changes.
@@ -15,7 +18,8 @@ import random
 import re
 from typing import Any
 
-import httpx
+from curl_cffi.requests import AsyncSession as _AsyncSession
+from curl_cffi.requests import exceptions as _cffi_exc
 
 from instagram_mcp_server.core.exceptions import AuthenticationError, RateLimitError
 from instagram_mcp_server.scraping.fields import USER_SECTIONS
@@ -149,11 +153,13 @@ class InstagramAPIClient:
         if self._user_id:
             headers["IG-INTENDED-USER-ID"] = self._user_id
             headers["IG-U-DS-USER-ID"] = self._user_id
-        self._client = httpx.AsyncClient(
+        # curl_cffi with Chrome impersonation — bypasses Instagram's JA3
+        # TLS fingerprint detection that blocks plain httpx/aiohttp.
+        self._client = _AsyncSession(
+            impersonate="chrome131",
             cookies=self._cookies,
             headers=headers,
-            follow_redirects=True,
-            timeout=httpx.Timeout(30.0, connect=15.0),
+            timeout=30.0,
         )
         self._user_agent = user_agent
 
@@ -209,7 +215,7 @@ class InstagramAPIClient:
                     )
                 else:
                     resp = await self._client.request(method, url, params=params)
-            except httpx.TimeoutException:
+            except (_cffi_exc.Timeout, _cffi_exc.ConnectTimeout, _cffi_exc.ReadTimeout):
                 logger.warning("API timeout on %s (attempt %d/%d)", path, attempt + 1, retries)
                 if attempt < retries - 1:
                     await self._sleep(2**attempt)
@@ -1619,7 +1625,7 @@ class InstagramAPIClient:
 # ---------------------------------------------------------------------------
 
 
-def _safe_json(resp: httpx.Response) -> dict[str, Any] | None:
+def _safe_json(resp: Any) -> dict[str, Any] | None:
     try:
         return resp.json()
     except Exception:

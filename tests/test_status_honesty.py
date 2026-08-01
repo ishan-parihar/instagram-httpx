@@ -81,7 +81,7 @@ def _setup_cli_mocks(monkeypatch, fresh_cache, httpx_client=None):
         lambda: {"sessionid": "123:abc:123", "csrftoken": "x"},
     )
     if httpx_client is not None:
-        monkeypatch.setattr("httpx.AsyncClient", lambda **kwargs: httpx_client)
+        monkeypatch.setattr("instagram_mcp_server.cli_main._AsyncSession", lambda **kwargs: httpx_client)
 
 
 # ===========================================================================

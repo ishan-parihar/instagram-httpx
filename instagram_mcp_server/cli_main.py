@@ -6,7 +6,7 @@ import logging
 import os
 import sys
 
-import httpx
+from curl_cffi.requests import AsyncSession as _AsyncSession
 
 from instagram_mcp_server.authentication import clear_auth_state
 from instagram_mcp_server.config import get_config
@@ -530,8 +530,9 @@ async def _check_session_api() -> bool:
                 "(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
             ),
         }
-        async with httpx.AsyncClient(
-            cookies=cookies, headers=headers, timeout=15
+        async with _AsyncSession(
+            impersonate="chrome131",
+            cookies=cookies, headers=headers, timeout=15,
         ) as client:
             resp = await client.get(
                 "https://www.instagram.com/api/v1/users/web_profile_info/"

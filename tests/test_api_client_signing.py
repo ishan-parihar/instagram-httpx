@@ -13,7 +13,7 @@ import time
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
+from curl_cffi.requests import exceptions as _cffi_exc
 import pytest
 
 from instagram_mcp_server.scraping.api_client import (
@@ -201,7 +201,7 @@ class TestRequestPostFormEncoding:
                 form_data = call_args.kwargs["data"]
                 assert "signed_body" in form_data
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_post_without_data_sends_no_body(self, cookies_normal):
@@ -222,7 +222,7 @@ class TestRequestPostFormEncoding:
                 assert "data" not in call_args.kwargs
                 assert "json" not in call_args.kwargs
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_post_signed_body_format(self, cookies_normal):
@@ -250,7 +250,7 @@ class TestRequestPostFormEncoding:
                 assert sig == expected_sig
                 assert json.loads(body) == data
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_post_signed_body_contains_csrf(self, cookies_normal):
@@ -278,7 +278,7 @@ class TestRequestPostFormEncoding:
                 assert parsed["_csrftoken"] == "csrf_token_value"
                 assert parsed["text"] == "test message"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
 
 # ===========================================================================
@@ -295,7 +295,7 @@ class TestHeaderInjection:
             assert headers.get("IG-INTENDED-USER-ID") == "1234567890"
             assert headers.get("IG-U-DS-USER-ID") == "1234567890"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_user_id_headers_absent_without_sessionid(self, cookies_no_sessionid):
         client = InstagramAPIClient(cookies_no_sessionid)
@@ -304,28 +304,28 @@ class TestHeaderInjection:
             assert "IG-INTENDED-USER-ID" not in headers
             assert "IG-U-DS-USER-ID" not in headers
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_csrf_token_header(self, cookies_normal):
         client = InstagramAPIClient(cookies_normal)
         try:
             assert client._client.headers.get("X-CSRFToken") == "csrf_token_value"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_app_id_header(self, cookies_normal):
         client = InstagramAPIClient(cookies_normal)
         try:
             assert client._client.headers.get("X-IG-App-ID") == IG_APP_ID
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_x_requested_with_header(self, cookies_normal):
         client = InstagramAPIClient(cookies_normal)
         try:
             assert client._client.headers.get("X-Requested-With") == "XMLHttpRequest"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_origin_and_referer(self, cookies_normal):
         client = InstagramAPIClient(cookies_normal)
@@ -333,7 +333,7 @@ class TestHeaderInjection:
             assert client._client.headers.get("Origin") == "https://www.instagram.com"
             assert client._client.headers.get("Referer") == "https://www.instagram.com/"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_url_encoded_sessionid_sets_user_id(self, cookies_url_encoded):
         client = InstagramAPIClient(cookies_url_encoded)
@@ -341,7 +341,7 @@ class TestHeaderInjection:
             assert client._user_id == "9876543210"
             assert client._client.headers.get("IG-INTENDED-USER-ID") == "9876543210"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     async def test_user_id_headers_on_all_requests(self, cookies_normal):
         """Verify headers are set on the httpx client (applied to every request)."""
@@ -351,7 +351,7 @@ class TestHeaderInjection:
             assert "IG-INTENDED-USER-ID" in h
             assert "IG-U-DS-USER-ID" in h
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
 
 # ===========================================================================
@@ -380,7 +380,7 @@ class TestGetRequestsUnchanged:
                 assert "data" not in call_args.kwargs
                 assert "json" not in call_args.kwargs
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
 
 # ===========================================================================
@@ -401,7 +401,7 @@ class TestRetryAndErrors:
 
             with patch.object(client._client, "request", new_callable=AsyncMock) as mock_req:
                 mock_req.side_effect = [
-                    httpx.TimeoutException("timeout"),
+                    _cffi_exc.Timeout("timeout"),
                     mock_response,
                 ]
                 with patch("instagram_mcp_server.scraping.api_client._async_sleep", new_callable=AsyncMock):
@@ -409,7 +409,7 @@ class TestRetryAndErrors:
                     assert result["status"] == "ok"
                     assert mock_req.call_count == 2
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_post_raises_auth_error_on_403_login_required(self, cookies_normal):
@@ -426,7 +426,7 @@ class TestRetryAndErrors:
                 with pytest.raises(AuthenticationError, match="expired"):
                     await client._post("/test/", data={"x": 1})
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_post_raises_rate_limit_on_429(self, cookies_normal):
@@ -443,7 +443,7 @@ class TestRetryAndErrors:
                     with pytest.raises(RateLimitError):
                         await client._post("/test/", data={"x": 1})
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
 
 # ===========================================================================
@@ -482,7 +482,7 @@ class TestActionEndpointSigning:
                     # No body for follow (data=None path)
                     assert "data" not in call_args.kwargs
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_unfollow_user_sends_post(self, cookies_normal):
@@ -499,7 +499,7 @@ class TestActionEndpointSigning:
                     assert call_args.args[0] == "POST"
                     assert "/friendships/destroy/12345/" in call_args.args[1]
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_like_post_sends_post(self, cookies_normal):
@@ -515,7 +515,7 @@ class TestActionEndpointSigning:
                     assert call_args.args[0] == "POST"
                     assert "/like/" in call_args.args[1]
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_unlike_post_sends_post(self, cookies_normal):
@@ -531,7 +531,7 @@ class TestActionEndpointSigning:
                     assert call_args.args[0] == "POST"
                     assert "/unlike/" in call_args.args[1]
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_comment_on_post_uses_signed_body(self, cookies_normal):
@@ -557,7 +557,7 @@ class TestActionEndpointSigning:
                     parsed = json.loads(body_json)
                     assert parsed.get("comment_text") == "Great post!"
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_send_dm_uses_signed_body(self, cookies_normal):
@@ -583,7 +583,7 @@ class TestActionEndpointSigning:
                     assert parsed["text"] == "Hello!"
                     assert "recipient_users" in parsed
         finally:
-            await client._client.aclose()
+            await client._client.close()
 
     @pytest.mark.asyncio
     async def test_save_post_sends_post(self, cookies_normal):
@@ -599,4 +599,4 @@ class TestActionEndpointSigning:
                     assert call_args.args[0] == "POST"
                     assert "/save/" in call_args.args[1]
         finally:
-            await client._client.aclose()
+            await client._client.close()
