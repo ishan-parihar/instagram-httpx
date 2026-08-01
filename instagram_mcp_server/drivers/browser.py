@@ -22,7 +22,7 @@ from instagram_mcp_server.session_state import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PROFILE_DIR = Path.home() / ".instagram-mcp" / "profile"
+DEFAULT_PROFILE_DIR = Path.home() / ".instagram-lyr" / "profile"
 
 _browser_api_client: object | None = None
 

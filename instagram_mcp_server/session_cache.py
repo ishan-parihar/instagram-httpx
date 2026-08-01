@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Cache configuration
-_SESSION_CACHE_FILE = Path.home() / ".instagram-mcp" / "session_cache.json"
+_SESSION_CACHE_FILE = Path.home() / ".instagram-lyr" / "session_cache.json"
 _SESSION_CACHE_TTL = 300  # 5 minutes cache TTL
 _RATE_LIMIT_COOLDOWN = 60  # 1 minute cooldown after rate limit
 

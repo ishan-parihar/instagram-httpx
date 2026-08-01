@@ -726,7 +726,7 @@ def import_cookies_interactive(browser_id: str | None = None) -> bool:
         print(f"   You may need to log in again in {profile.name}.")
         return False
 
-    profile_dir = Path.home() / ".instagram-mcp" / "profile"
+    profile_dir = Path.home() / ".instagram-lyr" / "profile"
 
     if save_cookies_to_profile(cookies, profile_dir, source_browser=browser_id):
         print(f"   ✓ Cookies saved to: {profile_dir}/cookies.json")
@@ -909,7 +909,7 @@ def load_or_import_cookies(
         Cookie dict, or None
     """
     if profile_dir is None:
-        profile_dir = Path.home() / ".instagram-mcp" / "profile"
+        profile_dir = Path.home() / ".instagram-lyr" / "profile"
 
     cookie_file = auth_root_dir(profile_dir) / "cookies.json"
     cookies = load_cookies_from_file(cookie_file)

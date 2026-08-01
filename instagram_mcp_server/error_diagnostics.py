@@ -289,7 +289,7 @@ def _safe_source_profile_dir():
     try:
         return get_source_profile_dir()
     except Exception:
-        return (Path.home() / ".instagram-mcp" / "profile").expanduser()
+        return (Path.home() / ".instagram-lyr" / "profile").expanduser()
 
 
 def _suggest_issue_title(
