@@ -503,17 +503,18 @@ async def _check_session_api() -> bool:
     from instagram_mcp_server.session_cache import get_session_cache
     
     cache = get_session_cache()
-    
-    # Check if we're in rate limit cooldown
-    if cache.is_in_rate_limit_cooldown():
-        logger.warning("In rate limit cooldown, skipping session check")
-        return True  # Assume session is valid during cooldown
-    
-    # Check cache first
     cache_key = "session_validity"
+    
+    # Check cache first — use cached result regardless of cooldown state
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result.get('valid', False)
+    
+    # No cached result available. If we're in rate limit cooldown,
+    # we can't make an API call right now — return False (can't verify).
+    if cache.is_in_rate_limit_cooldown():
+        logger.warning("In rate limit cooldown, no cached result — cannot verify session")
+        return False
     
     try:
         cookies = load_cookies()
@@ -537,11 +538,11 @@ async def _check_session_api() -> bool:
                 "?username=instagram"
             )
             
-            # Handle rate limiting
+            # Handle rate limiting — cannot verify session during 429
             if resp.status_code == 429:
                 cache.set_rate_limit()
                 logger.warning("Rate limited during session check")
-                return True  # Assume valid during rate limit
+                return False
             
             # Try to parse JSON response
             try:

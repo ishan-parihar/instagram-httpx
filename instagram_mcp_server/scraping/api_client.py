@@ -8,6 +8,7 @@ needs zero changes.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
@@ -125,23 +126,55 @@ class InstagramAPIClient:
     ) -> None:
         self._cookies: dict[str, str] = cookies or {}
         self._csrftoken = self._cookies.get("csrftoken", "")
+        self._user_id = self._extract_user_id()
+        headers: dict[str, str] = {
+            "X-CSRFToken": self._csrftoken,
+            "X-IG-App-ID": IG_APP_ID,
+            "User-Agent": user_agent,
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.instagram.com/",
+            "Origin": "https://www.instagram.com",
+            "X-Requested-With": "XMLHttpRequest",
+        }
+        if self._user_id:
+            headers["IG-INTENDED-USER-ID"] = self._user_id
+            headers["IG-U-DS-USER-ID"] = self._user_id
         self._client = httpx.AsyncClient(
             cookies=self._cookies,
-            headers={
-                "X-CSRFToken": self._csrftoken,
-                "X-IG-App-ID": IG_APP_ID,
-                "User-Agent": user_agent,
-                "Accept": "*/*",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Referer": "https://www.instagram.com/",
-                "Origin": "https://www.instagram.com",
-            },
+            headers=headers,
             follow_redirects=True,
             timeout=httpx.Timeout(30.0, connect=15.0),
         )
         self._user_agent = user_agent
 
     # -- helpers ----------------------------------------------------------------
+
+    def _extract_user_id(self) -> str:
+        """Extract numeric user ID from the sessionid cookie.
+
+        ``sessionid`` format is ``<user_id>:<token>:<timestamp>``
+        (sometimes URL-encoded as ``%3A``).
+        """
+        sessionid = self._cookies.get("sessionid", "")
+        if not sessionid:
+            return ""
+        sessionid = sessionid.replace("%3A", ":")
+        parts = sessionid.split(":")
+        if len(parts) >= 2 and parts[0].isdigit():
+            return parts[0]
+        return ""
+
+    @staticmethod
+    def _sign_body(data: dict[str, Any]) -> str:
+        """Wrap *data* in the ``signed_body`` format Instagram expects.
+
+        Instagram's private-web API requires POST bodies to be signed:
+        ``<sha256_hex>.<json>`` sent as form-encoded ``signed_body``.
+        """
+        body_json = json.dumps(data, separators=(",", ":"))
+        signature = hashlib.sha256(body_json.encode()).hexdigest()
+        return f"{signature}.{body_json}"
 
     async def _request(
         self,
@@ -152,11 +185,21 @@ class InstagramAPIClient:
         data: dict[str, Any] | None = None,
         retries: int = _MAX_RETRIES,
     ) -> dict[str, Any]:
-        """Make an API request with retry and Instagram-error handling."""
+        """Make an API request with retry and Instagram-error handling.
+
+        POST requests with *data* are wrapped in Instagram's ``signed_body``
+        format (SHA-256 signature + JSON, sent as form-encoded body).
+        """
         url = f"{API_URL}{path}" if path.startswith("/") else f"{API_URL}/{path}"
         for attempt in range(retries):
             try:
-                resp = await self._client.request(method, url, params=params, json=data)
+                if method.upper() == "POST" and data is not None:
+                    signed = self._sign_body(data)
+                    resp = await self._client.request(
+                        method, url, params=params, data={"signed_body": signed}
+                    )
+                else:
+                    resp = await self._client.request(method, url, params=params)
             except httpx.TimeoutException:
                 logger.warning(
                     "API timeout on %s (attempt %d/%d)", path, attempt + 1, retries
