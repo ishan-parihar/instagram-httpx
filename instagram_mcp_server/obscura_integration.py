@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from obscura_cookie_manager import (
+from obscura_core import (
     ObscuraCookieManager,
     FileCookieStorage,
     BrowserCookie3Extractor,
