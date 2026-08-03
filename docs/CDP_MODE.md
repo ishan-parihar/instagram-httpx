@@ -232,7 +232,7 @@ CDP mode works with Docker by connecting to Brave running on the host machine.
 
 3. Run Docker container with host network access:
    ```bash
-   docker run --network host instagram-mcp-server
+   docker run --network host instagram-lyr
    ```
 
 The container can now connect to Brave on the host via `localhost:9222`.
@@ -304,6 +304,6 @@ CDP mode bypasses all of these because:
 ## Support
 
 For issues or questions:
-- Check existing issues: https://github.com/ishan-parihar/instagram-mcp-server/issues
+- Check existing issues: https://github.com/ishan-parihar/instagram-lyr/issues
 - File a new issue with logs
 - Include your Brave version and OS

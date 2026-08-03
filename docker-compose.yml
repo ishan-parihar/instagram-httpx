@@ -1,6 +1,6 @@
 services:
   instagram-mcp:
-    image: stickerdaniel/instagram-mcp-server:1.0.0
+    image: ishan-parihar/instagram-lyr:1.0.0
     volumes:
       - ~/.instagram-mcp:/home/pwuser/.instagram-mcp
     environment:

@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Pre-commit: `uv run pre-commit install` then `uv run pre-commit run --all-files`
 - Run server locally: `uv run -m instagram_mcp_server --no-headless`
 - Run via uvx (PyPI/package verification only): `uvx instagram-lyr`
-- Docker build: `docker build -t instagram-mcp-server .`
+- Docker build: `docker build -t instagram-lyr .`
 - Install browser: `uv run patchright install chromium`
 
 ## Scraping Rules
@@ -58,7 +58,7 @@ curl -s -X POST http://127.0.0.1:8000/mcp \
 
 ## Release Process
 
-There is **no CI release workflow** in this repo (unlike `linkedin-lyr`, which has one). Installs are source-based: `install.sh` clones `main` and installs from the local tree, so **pushing to `main` is the release**.
+There is **no CI release workflow** in this repo. Installs are source-based: `install.sh` clones `main` and installs from the local tree, so **pushing to `main` is the release**.
 
 ```bash
 git checkout main && git pull

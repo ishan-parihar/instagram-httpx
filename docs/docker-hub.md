@@ -1,42 +1,43 @@
-# LinkedIn MCP Server
+# Instagram MCP Server
 
-A Model Context Protocol (MCP) server that connects AI assistants to LinkedIn. Access profiles, companies, and job postings through a Docker container.
+A Model Context Protocol (MCP) server that connects AI assistants to Instagram. Access profiles, posts, insights, search, messaging, and account actions through a Docker container.
 
 ## Features
 
-- **Profile Access**: Get detailed LinkedIn profile information
-- **Profile Connections**: Send connection requests or accept incoming ones, with optional notes
-- **Company Profiles**: Extract comprehensive company data
-- **Job Details**: Retrieve job posting information
-- **Job Search**: Search for jobs with keywords and location filters
-- **People Search**: Search for people by keywords and location
-- **Person Posts**: Get recent activity/posts from a person's profile
-- **Company Posts**: Get recent posts from a company's LinkedIn feed
+- **Profile Access**: Get detailed Instagram user profile information (bio, followers, following, post count)
+- **Posts & Reels**: Retrieve user posts and reels with engagement metrics
+- **Stories & Highlights**: Read active stories and story highlights
+- **Search**: Search users and locations by keyword
+- **Hashtag & Location Posts**: Fetch posts by hashtag or tagged location
+- **Direct Messages**: Read inbox and conversations, send DMs
+- **Account Actions**: Follow, unfollow, like, unlike, save, comment
 - **Compact References**: Return typed per-section links alongside readable text without shipping full-page markdown
+- **Reel Transcription**: Download and transcribe reels (requires optional `caption` CLI)
+- **Reel Analysis**: Multimodal analysis with Gemini (`analyze_reel_with_gemini`)
 
 ## Quick Start
 
-Create a browser profile locally, then mount it into Docker. You still need [uv](https://docs.astral.sh/uv/getting-started/installation/) installed on the host for the one-time `uvx linkedin-scraper-mcp --login` step. Docker already includes its own Chromium runtime, so the managed Patchright Chromium browser download used by MCPB/`uvx` is not needed here.
+Create a browser profile locally, then mount it into Docker. You still need [uv](https://docs.astral.sh/uv/getting-started/installation/) installed on the host for the one-time `uvx instagram-lyr --login` step. Docker already includes its own Chromium runtime, so the managed Patchright Chromium browser download used by MCPB/`uvx` is not needed here.
 
 **Step 1: Create profile on the host (one-time setup)**
 
 ```bash
-uvx linkedin-scraper-mcp --login
+uvx instagram-lyr --login
 ```
 
-This opens a browser window where you log in manually (5 minute timeout for 2FA, captcha, etc.). The browser profile and cookies are saved under `~/.linkedin-mcp/`. On startup, Docker derives a Linux browser profile from your host cookies and creates a fresh session each time. For better stability, consider the [uvx setup](https://github.com/stickerdaniel/linkedin-mcp-server#-uvx-setup-recommended---universal).
+This opens a browser window where you log in manually (5 minute timeout for 2FA, captcha, etc.). The browser profile and cookies are saved under `~/.instagram-mcp/`. On startup, Docker derives a Linux browser profile from your host cookies and creates a fresh session each time.
 
 **Step 2: Configure Claude Desktop with Docker**
 
 ```json
 {
   "mcpServers": {
-    "linkedin": {
+    "instagram": {
       "command": "docker",
       "args": [
         "run", "--rm", "-i",
-        "-v", "~/.linkedin-mcp:/home/pwuser/.linkedin-mcp",
-        "stickerdaniel/linkedin-mcp-server:latest"
+        "-v", "~/.instagram-mcp:/home/pwuser/.instagram-mcp",
+        "ishan-parihar/instagram-lyr:latest"
       ]
     }
   }
@@ -48,14 +49,14 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
 > **Note:** `stdio` is the default transport. Add `--transport streamable-http` only when you specifically want HTTP mode.
 >
 > **Note:** Tool calls are serialized within one server process to protect the
-> shared LinkedIn browser session. Concurrent client requests queue instead of
-> running in parallel. Use `LOG_LEVEL=DEBUG` to see scraper lock logs.
+shared Instagram browser session. Concurrent client requests queue instead of
+running in parallel. Use `LOG_LEVEL=DEBUG` to see scraper lock logs.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `USER_DATA_DIR` | `~/.linkedin-mcp/profile` | Path to persistent browser profile directory |
+| `USER_DATA_DIR` | `~/.instagram-mcp/profile` | Path to persistent browser profile directory |
 | `LOG_LEVEL` | `WARNING` | Logging level: DEBUG, INFO, WARNING, ERROR |
 | `TIMEOUT` | `5000` | Browser timeout in milliseconds |
 | `USER_AGENT` | - | Custom browser user agent |
@@ -66,21 +67,20 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
 | `SLOW_MO` | `0` | Delay between browser actions in ms (debugging) |
 | `VIEWPORT` | `1280x720` | Browser viewport size as WIDTHxHEIGHT |
 | `CHROME_PATH` | - | Path to Chrome/Chromium executable (rarely needed in Docker) |
-| `LINKEDIN_EXPERIMENTAL_PERSIST_DERIVED_SESSION` | `false` | Experimental: reuse checkpointed derived Linux runtime profiles across Docker restarts instead of fresh-bridging each startup |
-| `LINKEDIN_TRACE_MODE` | `on_error` | Trace/log retention mode: `on_error` keeps ephemeral artifacts only when a failure occurs, `always` keeps every run, `off` disables trace persistence |
+| `INSTAGRAM_TRACE_MODE` | `on_error` | Trace/log retention mode: `on_error` keeps ephemeral artifacts only when a failure occurs, `always` keeps every run, `off` disables trace persistence |
 
 **Example with custom timeout:**
 
 ```json
 {
   "mcpServers": {
-    "linkedin": {
+    "instagram": {
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
-        "-v", "~/.linkedin-mcp:/home/pwuser/.linkedin-mcp",
+        "-v", "~/.instagram-mcp:/home/pwuser/.instagram-mcp",
         "-e", "TIMEOUT=10000",
-        "stickerdaniel/linkedin-mcp-server"
+        "ishan-parihar/instagram-lyr"
       ]
     }
   }
@@ -89,5 +89,5 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
 
 ## Repository
 
-- **Source**: <https://github.com/stickerdaniel/linkedin-mcp-server>
-- **License**: Apache 2.0
+- **Source**: <https://github.com/ishan-parihar/instagram-lyr>
+- **License**: MIT

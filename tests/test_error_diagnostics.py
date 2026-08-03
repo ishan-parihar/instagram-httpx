@@ -44,7 +44,7 @@ def test_build_issue_diagnostics_includes_existing_issues(monkeypatch, tmp_path)
             {
                 "number": 220,
                 "title": "[BUG] recent-activity redirect loop in posts on linux-arm64-container",
-                "url": "https://github.com/stickerdaniel/instagram-mcp-server/issues/220",
+                "url": "https://github.com/ishan-parihar/instagram-lyr/issues/220",
             }
         ],
     )
@@ -79,7 +79,7 @@ def test_format_tool_error_with_diagnostics_prefers_existing_issue_comment_flow(
             {
                 "number": 220,
                 "title": "[BUG] recent-activity redirect loop in posts on linux-arm64-container",
-                "url": "https://github.com/stickerdaniel/instagram-mcp-server/issues/220",
+                "url": "https://github.com/ishan-parihar/instagram-lyr/issues/220",
             }
         ],
         "runtime": {

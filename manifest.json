@@ -8,11 +8,11 @@
   "author": {
     "name": "Ishan Patel",
     "email": "ishan@example.com",
-    "url": "https://github.com/stickerdaniel/instagram-mcp-server"
+    "url": "https://github.com/ishan-parihar/instagram-lyr"
   },
-  "homepage": "https://github.com/stickerdaniel/instagram-mcp-server",
-  "documentation": "https://github.com/stickerdaniel/instagram-mcp-server#readme",
-  "support": "https://github.com/stickerdaniel/instagram-mcp-server/issues",
+  "homepage": "https://github.com/ishan-parihar/instagram-lyr",
+  "documentation": "https://github.com/ishan-parihar/instagram-lyr#readme",
+  "support": "https://github.com/ishan-parihar/instagram-lyr/issues",
   "license": "MIT",
   "keywords": [
     "instagram",

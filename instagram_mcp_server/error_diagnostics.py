@@ -29,7 +29,7 @@ from instagram_mcp_server.session_state import (
     runtime_storage_state_path,
 )
 
-ISSUE_URL = "https://github.com/stickerdaniel/instagram-mcp-server/issues/new/choose"
+ISSUE_URL = "https://github.com/ishan-parihar/instagram-lyr/issues/new/choose"
 ISSUE_TITLE_PREFIX = "[BUG]"
 ISSUE_SEARCH_API = "https://api.github.com/search/issues"
 
@@ -332,7 +332,7 @@ def _find_existing_issues(payload: dict[str, Any]) -> list[dict[str, Any]]:
         f"{ISSUE_SEARCH_API}?q={quote_plus(query)}&per_page=3",
         headers={
             "Accept": "application/vnd.github+json",
-            "User-Agent": "instagram-mcp-server-diagnostics",
+            "User-Agent": "instagram-lyr-diagnostics",
         },
     )
     try:
@@ -366,7 +366,7 @@ def _installation_method_lines(runtime: dict[str, Any]) -> list[str]:
     docker_checked = "x" if "container" in current_runtime_id else " "
     managed_checked = " " if "container" in current_runtime_id else "x"
     return [
-        f"- [{docker_checked}] Docker (specify docker image version/tag): `stickerdaniel/instagram-mcp-server:<version-or-latest>` with `~/.instagram-mcp` mounted into `/home/pwuser/.instagram-mcp`",
+        f"- [{docker_checked}] Docker (specify docker image version/tag): `ishan-parihar/instagram-lyr:<version-or-latest>` with `~/.instagram-mcp` mounted into `/home/pwuser/.instagram-mcp`",
         f"- [{managed_checked}] Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)",
     ]
 
@@ -375,7 +375,7 @@ def _installation_method_summary(runtime: dict[str, Any]) -> str:
     current_runtime_id = str(runtime.get("current_runtime_id") or "")
     if "container" in current_runtime_id:
         return (
-            "Docker using `stickerdaniel/instagram-mcp-server:<version-or-latest>` with "
+            "Docker using `ishan-parihar/instagram-lyr:<version-or-latest>` with "
             "`~/.instagram-mcp` mounted into `/home/pwuser/.instagram-mcp`"
         )
     return "Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)"
@@ -427,4 +427,4 @@ def _issue_search_query(payload: dict[str, Any]) -> str:
     else:
         section = payload.get("section_name") or "scrape"
         summary = f'"{section}"'
-    return f"repo:stickerdaniel/instagram-mcp-server is:issue is:open {summary}"
+    return f"repo:ishan-parihar/instagram-lyr is:issue is:open {summary}"

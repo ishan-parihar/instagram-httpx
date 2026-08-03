@@ -4,7 +4,7 @@
   <a href="https://pypi.org/project/instagram-lyr/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-lyr?color=blue" alt="PyPI Version"></a>
   <a href="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
   <a href="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/release.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
-  <a href="https://github.com/ishan-parihar/instagram-lyr/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
+  <a href="https://github.com/ishan-parihar/instagram-lyr/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-MIT-%233fb950?labelColor=32383f" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python Version">
 </p>
 
@@ -411,4 +411,4 @@ This project is part of a family of agent-friendly CLI tools for social platform
 
 ## License
 
-Apache License 2.0
+MIT

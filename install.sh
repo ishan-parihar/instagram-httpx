@@ -169,7 +169,7 @@ check_transcription_deps() {
         success "caption CLI found — reel transcription enabled"
     else
         warn "caption CLI not found."
-        echo "  Reel transcription requires: https://github.com/oliverguhr/caption"
+        echo "  Reel transcription requires the 'caption' CLI (install via pip)."
         echo "  Alternative: use analyze_reel_with_gemini (no local deps needed)."
     fi
 }

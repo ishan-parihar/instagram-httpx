@@ -88,7 +88,7 @@ aiograpi = ">=1.12.0"
 **Installation**:
 ```toml
 [project.dependencies]
-okgram = "@ git+https://github.com/NiceDayZc/okgram.git"
+okgram = "@ pip install okgram"
 ```
 
 ### 4. insta-wizard (ALTERNATIVE - Modern Async)
