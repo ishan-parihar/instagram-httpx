@@ -25,6 +25,6 @@ Architecture:
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("instagram-scraper-mcp")
+    __version__ = version("instagram-lyr")
 except PackageNotFoundError:
     __version__ = "0.0.0.dev"  # Running from source without install

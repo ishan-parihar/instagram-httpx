@@ -217,7 +217,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         if "missing" in error_msg and "required" in error_msg:
             axi_error(
                 f"Tool `{tool_name}` requires additional parameters",
-                f"Run `instagram-httpx --tool-info {tool_name}` to see parameters.",
+                f"Run `instagram-lyr --tool-info {tool_name}` to see parameters.",
             )
         else:
             axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")

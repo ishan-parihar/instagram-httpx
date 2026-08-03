@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive assessment of the instagram-httpx-mcp project's production readiness for AI agent social media management, focusing on systemd persistence and media posting capabilities.
+This document provides a comprehensive assessment of the instagram-lyr project's production readiness for AI agent social media management, focusing on systemd persistence and media posting capabilities.
 
 ## Assessment Results
 
@@ -208,7 +208,7 @@ moviepy = ">=1.0.0"
 ## Conclusion
 
 ### Current State
-The instagram-httpx-mcp project is **production-ready for content consumption and engagement automation** but **lacks critical content creation capabilities**. This significantly limits its effectiveness for comprehensive AI agent social media management.
+The instagram-lyr project is **production-ready for content consumption and engagement automation** but **lacks critical content creation capabilities**. This significantly limits its effectiveness for comprehensive AI agent social media management.
 
 ### Critical Limitation
 **Cannot post images, reels, or carousels** - This is a showstopper for AI agents that need to manage social media accounts autonomously.

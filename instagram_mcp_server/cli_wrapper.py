@@ -5,7 +5,7 @@ import os
 
 def main() -> None:
     """Handle tool interception or delegate to MCP server mode."""
-    # ── Direct tool invocation: instagram-httpx <tool_name> [args...] ──────
+    # ── Direct tool invocation: instagram-lyr <tool_name> [args...] ──────
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         # Set environment variable early before any imports
         os.environ["INSTAGRAM_MCP_TOOL_MODE"] = "1"

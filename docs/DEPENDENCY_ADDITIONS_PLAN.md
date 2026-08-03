@@ -155,10 +155,10 @@ pip install instagrapi Pillow
 **Option 3: Optional Installation**
 ```bash
 # Install core package first
-pip install -e instagram-scraper-mcp
+pip install -e instagram-lyr
 
 # Then add posting capabilities
-pip install -e instagram-scraper-mcp[media-posting]
+pip install -e instagram-lyr[media-posting]
 ```
 
 ## FFmpeg Installation Guide

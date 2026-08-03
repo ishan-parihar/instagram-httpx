@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The comment-based DM automation system in instagram-httpx-mcp is **well-suited for systemd persistence** with proper configuration. The current implementation has all the necessary components for reliable long-term operation as a systemd service.
+The comment-based DM automation system in instagram-lyr is **well-suited for systemd persistence** with proper configuration. The current implementation has all the necessary components for reliable long-term operation as a systemd service.
 
 ## Current Implementation Analysis
 

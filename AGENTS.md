@@ -69,7 +69,7 @@ uv run ruff check . && uv run pytest   # verify before release
 
 Update `manifest.json` and `docker-compose.yml` version fields manually in the same bump — this repo has no automation updating them.
 
-After the release, file a PR in the MCP registry to update the version for `instagram-httpx`.
+After the release, file a PR in the MCP registry to update the version for `instagram-lyr`.
 
 ## Commit Messages
 

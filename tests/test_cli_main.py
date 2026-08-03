@@ -134,14 +134,14 @@ def test_get_version_prefers_installed_metadata(
 
     def fake_version(package_name: str) -> str:
         calls.append(package_name)
-        if package_name == "instagram-scraper-mcp":
+        if package_name == "instagram-lyr":
             return "4.2.0"
         raise importlib.metadata.PackageNotFoundError(package_name)
 
     monkeypatch.setattr(importlib.metadata, "version", fake_version)
 
     assert cli_main.get_version() == "4.2.0"
-    assert calls == ["instagram-scraper-mcp"]
+    assert calls == ["instagram-lyr"]
 
 
 def test_main_non_interactive_no_auth_still_starts_server(

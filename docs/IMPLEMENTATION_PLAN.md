@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This implementation plan adds comprehensive media posting capabilities (photos, videos, carousels, stories, reels) to the instagram-httpx-mcp project, enabling AI agents to manage Instagram social media accounts end-to-end.
+This implementation plan adds comprehensive media posting capabilities (photos, videos, carousels, stories, reels) to the instagram-lyr project, enabling AI agents to manage Instagram social media accounts end-to-end.
 
 **Timeline**: 4 weeks
 **Approach**: Phased implementation starting with photo posting, then expanding to video and advanced features
@@ -481,7 +481,7 @@ If critical issues arise:
 
 ## Conclusion
 
-This implementation plan provides a structured, phased approach to adding comprehensive media posting capabilities to the instagram-httpx-mcp project. The 4-week timeline balances rapid development with thorough testing and validation.
+This implementation plan provides a structured, phased approach to adding comprehensive media posting capabilities to the instagram-lyr project. The 4-week timeline balances rapid development with thorough testing and validation.
 
 **Key Success Factors**:
 - Phased implementation reduces risk

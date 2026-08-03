@@ -1,7 +1,7 @@
 # Instagram Specifications Upgrade Implementation Summary
 
 ## Overview
-Successfully upgraded the instagram-httpx-mcp infrastructure to support modern Instagram specifications (2025 standards), including extended video durations and flexible aspect ratios.
+Successfully upgraded the instagram-lyr infrastructure to support modern Instagram specifications (2025 standards), including extended video durations and flexible aspect ratios.
 
 ## Changes Implemented
 

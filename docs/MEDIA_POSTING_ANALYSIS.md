@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**Current Status**: The instagram-httpx-mcp project **does not currently support posting images, reels, or carousels**. The current implementation is focused on **content consumption** (scraping, reading, analyzing) rather than **content creation** (posting, uploading).
+**Current Status**: The instagram-lyr project **does not currently support posting images, reels, or carousels**. The current implementation is focused on **content consumption** (scraping, reading, analyzing) rather than **content creation** (posting, uploading).
 
 ## Current Capabilities Assessment
 
@@ -319,7 +319,7 @@ ReadWritePaths=/tmp/instagram-media
 
 ## Conclusion
 
-**Current Limitation**: The instagram-httpx-mcp project **cannot currently post images, reels, or carousels**. The current implementation is focused exclusively on content consumption and analysis.
+**Current Limitation**: The instagram-lyr project **cannot currently post images, reels, or carousels**. The current implementation is focused exclusively on content consumption and analysis.
 
 **Recommendation**: Implement media posting capabilities using the `instagrapi` library, which provides well-tested Instagram posting functionality. This can be integrated with the existing multi-account system and DM automation features.
 

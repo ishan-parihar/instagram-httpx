@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Custom entry point script for instagram-httpx that handles tool interception."""
+"""Custom entry point script for instagram-lyr that handles tool interception."""
 
 import sys
 import os
 
-# ── Direct tool invocation: instagram-httpx <tool_name> [args...] ──────
+# ── Direct tool invocation: instagram-lyr <tool_name> [args...] ──────
 # Intercept BEFORE any imports to avoid argparse conflicts
 # This must be at module level to execute when run with -m
 if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):

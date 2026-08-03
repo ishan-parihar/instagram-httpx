@@ -1,10 +1,10 @@
 # Instagram HTTPX MCP Server
 
 <p align="left">
-  <a href="https://pypi.org/project/instagram-httpx/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-httpx?color=blue" alt="PyPI Version"></a>
-  <a href="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
-  <a href="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/release.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-httpx/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
-  <a href="https://github.com/ishan-parihar/instagram-httpx/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
+  <a href="https://pypi.org/project/instagram-lyr/" target="_blank"><img src="https://img.shields.io/pypi/v/instagram-lyr?color=blue" alt="PyPI Version"></a>
+  <a href="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
+  <a href="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/release.yml" target="_blank"><img src="https://github.com/ishan-parihar/instagram-lyr/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
+  <a href="https://github.com/ishan-parihar/instagram-lyr/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python Version">
 </p>
 
@@ -16,7 +16,7 @@ Access profiles, posts, reels, Business/Creator insights, direct messages, and f
 
 **One-line installation:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-httpx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-lyr/main/install.sh | bash
 ```
 
 ## What It Does
@@ -35,7 +35,7 @@ curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-httpx/main/
 **1. Install**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-httpx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ishan-parihar/instagram-lyr/main/install.sh | bash
 ```
 
 **2. Configure your MCP client**
@@ -47,7 +47,7 @@ Add to your client's MCP config:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-httpx"]
+      "args": ["instagram-lyr"]
     }
   }
 }
@@ -94,19 +94,19 @@ AI coding agents in headless environments can authenticate by providing Instagra
 **Linux/macOS:**
 ```bash
 export INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
-uvx instagram-httpx
+uvx instagram-lyr
 ```
 
 **Windows (PowerShell):**
 ```powershell
 $env:INSTAGRAM_COOKIES='{"sessionid":"your_session_id_value","csrftoken":"your_csrf_token_value"}'
-uvx instagram-httpx
+uvx instagram-lyr
 ```
 
 ### Option B: Pass cookies via file
 
 ```bash
-uvx instagram-httpx --cookies-file /path/to/cookies.json
+uvx instagram-lyr --cookies-file /path/to/cookies.json
 ```
 
 ### How to get cookies
@@ -124,30 +124,30 @@ The CLI provides agent-optimized interaction with TOON output and session integr
 
 ```bash
 # Show home view with live state
-instagram-httpx-mcp
+instagram-lyr
 
 # List available tools
-instagram-httpx-mcp --list-tools
+instagram-lyr --list-tools
 
 # Tool details
-instagram-httpx-mcp --tool-info ias_get_user_profile
+instagram-lyr --tool-info ias_get_user_profile
 
 # Session management
-instagram-httpx-mcp --login
-instagram-httpx-mcp --status
-instagram-httpx-mcp --logout
+instagram-lyr --login
+instagram-lyr --status
+instagram-lyr --logout
 
 # Agent integrations
-instagram-httpx-mcp --install-hook    # Session hooks for Claude Code/Codex
-instagram-httpx-mcp --install-skill   # Agent skill for auto-discovery
+instagram-lyr --install-hook    # Session hooks for Claude Code/Codex
+instagram-lyr --install-skill   # Agent skill for auto-discovery
 ```
 
 **Session Integration:**
 ```bash
-$ instagram-httpx-mcp --install-hook
+$ instagram-lyr --install-hook
 status: success
 target: claude_code
-hook: SessionStart -> ~/instagram-httpx-mcp/instagram_mcp_server/__main__.py
+hook: SessionStart -> ~/instagram-lyr/instagram_mcp_server/__main__.py
 help: Session will now show Instagram MCP state on startup
 ```
 
@@ -171,7 +171,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-httpx"]
+      "args": ["instagram-lyr"]
     }
   }
 }
@@ -184,7 +184,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-httpx"]
+      "args": ["instagram-lyr"]
     }
   }
 }
@@ -197,7 +197,7 @@ The server uses a hybrid approach:
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-httpx"]
+      "args": ["instagram-lyr"]
     }
   }
 }
@@ -345,8 +345,8 @@ The server uses a hybrid approach:
 |----------|-------------|
 | **First run** | Cookie extraction window opens. Complete sign-in (including 2FA if needed). Session saved. |
 | **Subsequent runs** | Cookies loaded from `~/.instagram-mcp/profile/` automatically. |
-| **Session expired** | Re-run `uvx instagram-httpx --login` to re-authenticate. |
-| **Clear session** | Run `uvx instagram-httpx --logout` to remove stored cookies. |
+| **Session expired** | Re-run `uvx instagram-lyr --login` to re-authenticate. |
+| **Clear session** | Run `uvx instagram-lyr --logout` to remove stored cookies. |
 
 > Instagram may request login confirmation on your mobile app for new sessions. If you encounter a captcha, use `--login` to solve it manually in the opened browser.
 

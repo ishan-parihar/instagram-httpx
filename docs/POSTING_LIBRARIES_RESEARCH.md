@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Based on comprehensive research of Instagram posting libraries and APIs, I have identified the optimal approach for implementing content creation capabilities in the instagram-httpx-mcp project.
+Based on comprehensive research of Instagram posting libraries and APIs, I have identified the optimal approach for implementing content creation capabilities in the instagram-lyr project.
 
 ## Library Comparison Analysis
 

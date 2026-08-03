@@ -70,7 +70,7 @@ class TestListTools:
         out = capsys.readouterr().out
         assert "help[" in out
         assert "--tool-info" in out
-        assert "--list-tools" not in out or "instagram-httpx-mcp" in out
+        assert "--list-tools" not in out or "instagram-lyr" in out
 
     def test_list_tools_output_format_is_toon(self, capsys):
         """Output should use TOON-style formatting, not raw JSON."""

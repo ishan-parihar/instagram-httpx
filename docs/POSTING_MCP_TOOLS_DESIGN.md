@@ -2,7 +2,7 @@
 
 ## Tool Design Principles
 
-Following the existing patterns in the instagram-httpx-mcp project:
+Following the existing patterns in the instagram-lyr project:
 
 1. **Consistent Naming**: Use descriptive, action-oriented tool names
 2. **Account Selection**: All tools support optional `account_id` parameter

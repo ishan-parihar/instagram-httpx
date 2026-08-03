@@ -4,7 +4,7 @@
 import sys
 import os
 
-# ── Direct tool invocation: instagram-httpx-mcp <tool_name> [args...] ──────
+# ── Direct tool invocation: instagram-lyr <tool_name> [args...] ──────
 # Intercept BEFORE any imports to avoid argparse conflicts
 if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
     # Set environment variable early before any imports

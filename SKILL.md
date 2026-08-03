@@ -10,18 +10,18 @@ description: >
 Interact with Instagram via MCP — profiles, posts, reels, DMs, and analytics.
 
 <!-- Static skill -->
-<!-- Install: npx skills add <owner/instagram-httpx-mcp> --skill instagram-mcp -->
-<!-- CI check: diff <(instagram-scraper-mcp --help) SKILL.md && exit 1 -->
-<!-- Install: npx skills add <owner/instagram-httpx-mcp> --skill instagram-mcp -->
+<!-- Install: npx skills add <owner/instagram-lyr> --skill instagram-mcp -->
+<!-- CI check: diff <(instagram-lyr --help) SKILL.md && exit 1 -->
+<!-- Install: npx skills add <owner/instagram-lyr> --skill instagram-mcp -->
 
 ## Quick Start
 
 ```bash
 # Run the MCP server
-instagram-scraper-mcp
+instagram-lyr
 
 # Or with uvx
-uvx instagram-scraper-mcp
+uvx instagram-lyr
 ```
 
 ## MCP Configuration
@@ -31,7 +31,7 @@ uvx instagram-scraper-mcp
   "mcpServers": {
     "instagram": {
       "command": "uvx",
-      "args": ["instagram-scraper-mcp"]
+      "args": ["instagram-lyr"]
     }
   }
 }

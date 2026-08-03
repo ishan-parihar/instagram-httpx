@@ -1,7 +1,7 @@
 # AXI Compliance Implementation
 
 ## Overview
-Implemented Agent eXperience Interface (AXI) standards for the instagram-httpx-mcp CLI to provide optimal autonomous agent interaction through shell execution. The infrastructure now provides both CLI and MCP interfaces with agent-optimized output, session integrations, and discoverability.
+Implemented Agent eXperience Interface (AXI) standards for the instagram-lyr CLI to provide optimal autonomous agent interaction through shell execution. The infrastructure now provides both CLI and MCP interfaces with agent-optimized output, session integrations, and discoverability.
 
 ## AXI Standards Implemented
 
@@ -13,7 +13,7 @@ Implemented Agent eXperience Interface (AXI) standards for the instagram-httpx-m
 
 **Example Output:**
 ```bash
-$ instagram-httpx-mcp --list-tools
+$ instagram-lyr --list-tools
 count: 16 of 16 total
 tools[16]:
   ias_get_user_profile,Get Instagram user profile information
@@ -64,7 +64,7 @@ def _truncate(s: str, max_chars: int = 500) -> str:
 
 **Example:**
 ```bash
-$ instagram-httpx-mcp --logout
+$ instagram-lyr --logout
 status: nothing_to_clear
 message: No authentication state found
 ```
@@ -84,9 +84,9 @@ message: No authentication state found
 
 **Example:**
 ```bash
-$ instagram-httpx-mcp --tool-info
+$ instagram-lyr --tool-info
 error: --tool-info requires a tool name
-help: Usage: instagram-httpx-mcp --tool-info <tool-name>
+help: Usage: instagram-lyr --tool-info <tool-name>
 ```
 
 ### §7: Ambient context via session integrations
@@ -101,16 +101,16 @@ help: Usage: instagram-httpx-mcp --tool-info <tool-name>
 
 **Session Hook Installation:**
 ```bash
-$ instagram-httpx-mcp --install-hook
+$ instagram-lyr --install-hook
 status: success
 target: claude_code
-hook: SessionStart -> ~/Documents/GitHub/MY-PROJECTS/MCP-AND-CLIS/instagram-httpx-mcp/instagram_mcp_server/__main__.py
+hook: SessionStart -> ~/Documents/GitHub/MY-PROJECTS/MCP-AND-CLIS/instagram-lyr/instagram_mcp_server/__main__.py
 help: Session will now show Instagram MCP state on startup
 ```
 
 **Agent Skill Installation:**
 ```bash
-$ instagram-httpx-mcp --install-skill
+$ instagram-lyr --install-skill
 status: success
 skill_path: /home/ishanp/.claude/skills/instagram-mcp/SKILL.md
 help: Agent skill installed - will load automatically on Instagram-related tasks
@@ -132,24 +132,24 @@ help: Agent skill installed - will load automatically on Instagram-related tasks
 
 **Example:**
 ```bash
-$ instagram-httpx-mcp
-bin: ~/Documents/GitHub/MY-PROJECTS/MCP-AND-CLIS/instagram-httpx-mcp/instagram_mcp_server/__main__.py
+$ instagram-lyr
+bin: ~/Documents/GitHub/MY-PROJECTS/MCP-AND-CLIS/instagram-lyr/instagram_mcp_server/__main__.py
 version: 1.1.0
 description: Instagram MCP server — profiles, posts, reels, stories, DMs, and account actions
 
 session:
   status: not_configured
-  help: Run `instagram-httpx-mcp --login` to create a session
+  help: Run `instagram-lyr --login` to create a session
 
 tools[16]:
   ias_get_user_profile,Get Instagram user profile information
   ...
 
 help[4]:
-  Run `instagram-httpx-mcp --tool-info <name>` for detailed parameters
-  Run `instagram-httpx-mcp --list-tools` to see all tools
-  Run `instagram-httpx-mcp --login` to import browser cookies
-  Run `instagram-httpx-mcp` to start the MCP server
+  Run `instagram-lyr --tool-info <name>` for detailed parameters
+  Run `instagram-lyr --list-tools` to see all tools
+  Run `instagram-lyr --login` to import browser cookies
+  Run `instagram-lyr` to start the MCP server
 ```
 
 ### §9: Contextual disclosure
@@ -175,14 +175,14 @@ help[4]:
 
 **Example:**
 ```bash
-$ instagram-httpx-mcp --help
-instagram-httpx-mcp v1.1.0
+$ instagram-lyr --help
+instagram-lyr v1.1.0
 Instagram MCP server — profiles, posts, reels, stories, DMs, and account actions
 
 Usage:
-  instagram-httpx-mcp                    Show home view with live state
-  instagram-httpx-mcp --list-tools       List all available MCP tools
-  instagram-httpx-mcp --tool-info <name> Show details for a specific tool
+  instagram-lyr                    Show home view with live state
+  instagram-lyr --list-tools       List all available MCP tools
+  instagram-lyr --tool-info <name> Show details for a specific tool
   ...
 
 Session Integration:
@@ -190,10 +190,10 @@ Session Integration:
   --install-skill   Install agent skill for task-based discovery
 
 Examples:
-  instagram-httpx-mcp --tool-info ias_get_user_profile
-  instagram-httpx-mcp --list-tools
-  instagram-httpx-mcp --login
-  instagram-httpx-mcp --install-hook
+  instagram-lyr --tool-info ias_get_user_profile
+  instagram-lyr --list-tools
+  instagram-lyr --login
+  instagram-lyr --install-hook
 ```
 
 ## Technical Implementation
@@ -256,37 +256,37 @@ message: Authentication state cleared
 
 **Home View:**
 ```bash
-$ instagram-httpx-mcp
+$ instagram-lyr
 # Shows session status, tool listing, contextual help
 ```
 
 **Tool Listing:**
 ```bash
-$ instagram-httpx-mcp --list-tools
+$ instagram-lyr --list-tools
 # Shows count and TOON-formatted tool list
 ```
 
 **Tool Details:**
 ```bash
-$ instagram-httpx-mcp --tool-info ias_get_user_profile
+$ instagram-lyr --tool-info ias_get_user_profile
 # Shows TOON-formatted tool details
 ```
 
 **Skill Installation:**
 ```bash
-$ instagram-httpx-mcp --install-skill
+$ instagram-lyr --install-skill
 # Successfully installs agent skill
 ```
 
 **Hook Installation:**
 ```bash
-$ instagram-httpx-mcp --install-hook
+$ instagram-lyr --install-hook
 # Successfully installs session hooks for Claude Code/Codex
 ```
 
 **Error Handling:**
 ```bash
-$ instagram-httpx-mcp --unknown-flag
+$ instagram-lyr --unknown-flag
 # Fails with exit code 2 and error message
 ```
 
@@ -354,7 +354,7 @@ The MCP server functionality remains unchanged. All AXI improvements are applied
 
 ## Summary
 
-The instagram-httpx-mcp infrastructure now provides both CLI and MCP interfaces with full AXI compliance. The CLI is optimized for autonomous agent interaction with token-efficient TOON output, session integrations for ambient context, and comprehensive agent discovery via hooks and skills. The MCP server functionality remains unchanged, providing a dual-interface approach that serves both human users and autonomous agents effectively.
+The instagram-lyr infrastructure now provides both CLI and MCP interfaces with full AXI compliance. The CLI is optimized for autonomous agent interaction with token-efficient TOON output, session integrations for ambient context, and comprehensive agent discovery via hooks and skills. The MCP server functionality remains unchanged, providing a dual-interface approach that serves both human users and autonomous agents effectively.
 
 **Implementation Date:** 2026-07-29  
 **Status:** ✅ Complete and Production Ready  
