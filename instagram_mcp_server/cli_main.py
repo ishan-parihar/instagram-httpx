@@ -20,6 +20,7 @@ from instagram_mcp_server.logging_config import (
     configure_logging,
     teardown_trace_logging,
 )
+from instagram_mcp_server.scraping import identity
 from instagram_mcp_server.server import create_mcp_server
 from instagram_mcp_server.session_state import (
     get_runtime_id,
@@ -522,16 +523,16 @@ async def _check_session_api() -> bool:
             cache.set(cache_key, {'valid': False})
             return False
 
+        # Same coherent fingerprint bundle as the API client — a session must
+        # never be presented under two different UA/TLS pairings.
         headers = {
             "X-CSRFToken": cookies.get("csrftoken", ""),
             "X-IG-App-ID": "936619743392459",
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
-            ),
+            "User-Agent": identity.USER_AGENT,
         }
+        headers.update(identity.client_hints())
         async with _AsyncSession(
-            impersonate="chrome131",
+            impersonate=identity.IMPERSONATE,
             cookies=cookies, headers=headers, timeout=15,
         ) as client:
             resp = await client.get(
@@ -630,7 +631,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         result = asyncio.run(tool.fn(**kwargs))
     except SystemExit:
         raise
-    except TypeError as e:
+    except TypeError:
         # Catch missing required args (e.g. "missing 1 required positional argument")
         axi_error(
             f"Tool `{tool_name}` missing required argument",

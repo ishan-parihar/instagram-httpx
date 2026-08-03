@@ -1,11 +1,33 @@
-"""Shared media download utility using httpx with Instagram cookie authentication."""
+"""Shared media download utility with cookie auth.
+
+Media CDN fetches that (often) carry the session ``sessionid`` cookie are served
+from the same Instagram frontend that the API hits, so they must use the SAME
+coherent UA + TLS fingerprint as the API client. A mobile UA over a plain
+httpx/curl TLS stack while the private API uses desktop Chrome is the exact
+fingerprint inconsistency that gets sessions flagged.
+"""
 
 import logging
 from pathlib import Path
 
-import httpx
+from curl_cffi.requests import AsyncSession as _AsyncSession
+
+from instagram_mcp_server.scraping import identity
 
 logger = logging.getLogger(__name__)
+
+
+def _session_headers(cookies: dict[str, str] | None) -> dict[str, str]:
+    headers = {
+        "Referer": "https://www.instagram.com/",
+        "User-Agent": identity.USER_AGENT,
+    }
+    headers.update(identity.client_hints())
+    if cookies:
+        cookie_header = "; ".join(f"{k}={v}" for k, v in cookies.items() if v)
+        if cookie_header:
+            headers["Cookie"] = cookie_header
+    return headers
 
 
 async def download_media(
@@ -28,26 +50,18 @@ async def download_media(
         True if download succeeded, False otherwise
     """
     try:
-        headers: dict[str, str] = {
-            "Referer": "https://www.instagram.com/",
-            "User-Agent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-        }
-        if cookies:
-            cookie_header = "; ".join(
-                f"{k}={v}" for k, v in cookies.items() if v
-            )
-            if cookie_header:
-                headers["Cookie"] = cookie_header
-
-        async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
-            async with client.stream("GET", media_url, timeout=timeout) as response:
+        headers = _session_headers(cookies)
+        async with _AsyncSession(
+            impersonate=identity.IMPERSONATE, headers=headers, timeout=timeout,
+        ) as client:
+            async with client.stream("GET", media_url) as response:
                 if response.status_code != 200:
                     logger.error("Download failed: HTTP %d for %s", response.status_code, media_url[:80])
                     return False
                 output_path = Path(output_path)
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(output_path, "wb") as f:
-                    async for chunk in response.aiter_bytes(chunk_size=8192):
+                    async for chunk in response.aiter_content():
                         f.write(chunk)
         logger.info("Downloaded: %s", output_path.name)
         return True
@@ -74,19 +88,11 @@ async def download_bytes(
         Raw bytes or None on failure
     """
     try:
-        headers: dict[str, str] = {
-            "Referer": "https://www.instagram.com/",
-            "User-Agent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-        }
-        if cookies:
-            cookie_header = "; ".join(
-                f"{k}={v}" for k, v in cookies.items() if v
-            )
-            if cookie_header:
-                headers["Cookie"] = cookie_header
-
-        async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
-            response = await client.get(media_url, timeout=timeout)
+        headers = _session_headers(cookies)
+        async with _AsyncSession(
+            impersonate=identity.IMPERSONATE, headers=headers, timeout=timeout,
+        ) as client:
+            response = await client.get(media_url)
             if response.status_code == 200:
                 return response.content
             logger.warning("Download returned HTTP %d for %s", response.status_code, media_url[:80])

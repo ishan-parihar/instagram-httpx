@@ -16,13 +16,20 @@ import json
 import logging
 import random
 import re
-from typing import Any
+import threading
+import time
+from typing import Any, Callable
 
 from curl_cffi.requests import AsyncSession as _AsyncSession
 from curl_cffi.requests import exceptions as _cffi_exc
 
 from instagram_mcp_server.core.exceptions import AuthenticationError, RateLimitError
 from instagram_mcp_server.scraping.fields import USER_SECTIONS
+from instagram_mcp_server.scraping.identity import (
+    IMPERSONATE as _IMPERSONATE,
+    client_hints as _client_hints,
+    USER_AGENT as _SHARED_UA,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,20 +41,22 @@ BASE_URL = "https://www.instagram.com"
 API_URL = "https://www.instagram.com/api/v1"
 # Web app ID required by some API endpoints
 IG_APP_ID = "936619743392459"
-# Mobile user-agent — needed for certain API responses
-MOBILE_UA = (
-    "Mozilla/5.0 (Linux; Android 13; Pixel 7) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Mobile Safari/537.36"
-)
-DESKTOP_UA = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
 
 # How long to wait between API retries on 429
 _RATE_LIMIT_SLEEP = 30
 _MAX_RETRIES = 3
+
+# Write pacing: minimum gap (s) between write actions + extra random jitter.
+# This keeps follow/like/comment/DM cadence human, so agent loops can't burn
+# the session by firing rapid write bursts.
+_WRITE_MIN_GAP = 10.0
+_WRITE_JITTER = 5.0
+_WRITE_PACING = True
+# Cross-client last-write timestamp so pacing survives fresh clients that are
+# built per MCP tool call (lock guards the tiny read-modify-write critical
+# section; the actual sleep happens outside the lock).
+_WRITE_LOCK = threading.Lock()
+_LAST_WRITE_AT = 0.0
 
 # Anti-bot: jitter range (seconds) between paginated requests
 _JITTER_MIN = 1.5
@@ -135,33 +144,39 @@ class InstagramAPIClient:
         self,
         cookies: dict[str, str] | None = None,
         *,
-        user_agent: str = MOBILE_UA,
+        user_agent: str | None = None,
+        impersonate: str = _IMPERSONATE,
+        cookie_sink: Callable[[dict[str, str]], None] | None = None,
+        write_pace: bool = True,
     ) -> None:
         self._cookies: dict[str, str] = cookies or {}
         self._csrftoken = self._cookies.get("csrftoken", "")
         self._user_id = self._extract_user_id()
+        self._cookie_sink = cookie_sink
+        self._write_pace = write_pace
+        self._user_agent = user_agent or _SHARED_UA
         headers: dict[str, str] = {
             "X-CSRFToken": self._csrftoken,
             "X-IG-App-ID": IG_APP_ID,
-            "User-Agent": user_agent,
+            "User-Agent": self._user_agent,
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.9",
             "Referer": "https://www.instagram.com/",
             "Origin": "https://www.instagram.com",
             "X-Requested-With": "XMLHttpRequest",
         }
+        headers.update(_client_hints())
         if self._user_id:
             headers["IG-INTENDED-USER-ID"] = self._user_id
             headers["IG-U-DS-USER-ID"] = self._user_id
         # curl_cffi with Chrome impersonation — bypasses Instagram's JA3
         # TLS fingerprint detection that blocks plain httpx/aiohttp.
         self._client = _AsyncSession(
-            impersonate="chrome131",
+            impersonate=impersonate,
             cookies=self._cookies,
             headers=headers,
             timeout=30.0,
         )
-        self._user_agent = user_agent
 
     # -- helpers ----------------------------------------------------------------
 
@@ -223,9 +238,15 @@ class InstagramAPIClient:
                 raise
 
             if resp.status_code == 429:
-                logger.warning("Rate-limited (429) on %s — sleeping %ds", path, _RATE_LIMIT_SLEEP)
-                if attempt < retries - 1:
-                    await self._sleep(_RATE_LIMIT_SLEEP)
+                # Honor Retry-After, and only retry ONCE — a retry storm on the
+                # same request is itself a detection signal.
+                retry_after = _retry_after_delay(resp)
+                delay = max(retry_after, _RATE_LIMIT_SLEEP)
+                logger.warning(
+                    "Rate-limited (429) on %s — retry_after=%s", path, retry_after
+                )
+                if attempt == 0:
+                    await self._sleep(delay)
                     continue
                 raise RateLimitError("Instagram rate-limited this request")
 
@@ -252,16 +273,73 @@ class InstagramAPIClient:
             body = _safe_json(resp)
             if body is None:
                 raise AuthenticationError(f"Non-JSON response: {resp.text[:200]}")
+            # Persist any cookies the server rotated on a successful response so
+            # the stored jar stays in sync with the live session.
+            await self._persist_cookies()
             return body
 
         msg = f"Exhausted retries for {path}"
         logger.error(msg)
         raise AuthenticationError(msg)
 
+    async def _persist_cookies(self) -> None:
+        """Write any cookies the server rotated back through the sink.
+
+        Instagram periodically refreshes ``csrftoken``/``ig_did`` via Set-Cookie.
+        Without write-back the stored jar drifts from the live session and the
+        client ends up presenting stale tokens on every new process.
+        """
+        if not self._cookie_sink:
+            return
+        jar = getattr(self._client, "cookies", None)
+        if jar is None:
+            return
+        updates: dict[str, str] = {}
+        try:
+            for cookie in jar:
+                name = getattr(cookie, "name", None)
+                value = getattr(cookie, "value", None)
+                if name and value:
+                    updates[name] = value
+        except Exception:
+            return
+        if not updates:
+            return
+        combined = {**self._cookies, **updates}
+        if combined == self._cookies:
+            return
+        self._cookies = combined
+        self._csrftoken = combined.get("csrftoken", self._csrftoken)
+        try:
+            self._cookie_sink(combined)
+        except Exception:
+            logger.warning("Cookie write-back failed", exc_info=True)
+
+    async def _gate_write(self) -> None:
+        """Enforce a human-like minimum gap between write actions.
+
+        Read actions are cheap; write actions (follow/like/comment/DM) are what
+        Instagram's detection punishes at machine cadence. Agent loops firing
+        these must be throttled, not burst — across client instances.
+        """
+        if not (self._write_pace and _WRITE_PACING):
+            return
+        global _LAST_WRITE_AT
+        gap = random.uniform(_WRITE_MIN_GAP, _WRITE_MIN_GAP + _WRITE_JITTER)
+        with _WRITE_LOCK:
+            now = time.monotonic()
+            elapsed = now - _LAST_WRITE_AT
+            need = gap - elapsed if elapsed < gap else 0.0
+            if need == 0.0:
+                _LAST_WRITE_AT = now
+        if need:
+            await self._sleep(need)
+
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self._request("GET", path, params=params)
 
     async def _post(self, path: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
+        await self._gate_write()
         return await self._request("POST", path, data=data)
 
     @staticmethod
@@ -1630,6 +1708,28 @@ def _safe_json(resp: Any) -> dict[str, Any] | None:
         return resp.json()
     except Exception:
         return None
+
+
+def _retry_after_delay(resp: Any) -> float:
+    """Parse Instagram's Retry-After hint from a 429 response (0 if absent)."""
+    try:
+        headers = resp.headers
+    except Exception:
+        return 0.0
+    for key in ("Retry-After", "retry-after"):
+        raw = headers.get(key)
+        if raw:
+            try:
+                return max(0.0, float(raw))
+            except (TypeError, ValueError):
+                return 0.0
+    return 0.0
+
+
+def set_write_pacing(enabled: bool) -> None:
+    """Global toggle for write-action pacing (used by tests)."""
+    global _WRITE_PACING
+    _WRITE_PACING = enabled
 
 
 def _media_type_name(t: int) -> str:

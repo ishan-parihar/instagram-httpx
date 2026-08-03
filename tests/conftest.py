@@ -7,14 +7,17 @@ def reset_singletons():
     from instagram_mcp_server.bootstrap import reset_bootstrap_for_testing
     from instagram_mcp_server.config import reset_config
     from instagram_mcp_server.drivers.browser import reset_browser_for_testing
+    from instagram_mcp_server.scraping import api_client
 
     reset_bootstrap_for_testing()
     reset_browser_for_testing()
     reset_config()
+    api_client.set_write_pacing(False)
     yield
     reset_bootstrap_for_testing()
     reset_browser_for_testing()
     reset_config()
+    api_client.set_write_pacing(True)
 
 
 @pytest.fixture(autouse=True)

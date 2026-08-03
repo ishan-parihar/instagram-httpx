@@ -219,3 +219,6 @@ scripts/snapshot_dumps/
 .contexty
 .memsearch
 .hive
+
+# Local magic-context working data
+.cortexkit/

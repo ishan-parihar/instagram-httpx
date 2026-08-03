@@ -6,7 +6,9 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any, NoReturn
+import threading
+from pathlib import Path
+from typing import Any, Callable, NoReturn
 
 from fastmcp import Context
 
@@ -149,7 +151,42 @@ def _build_api_client(account_id: str | None = None) -> InstagramAPIClient:
         cookie_file,
         len(cookies),
     )
-    return InstagramAPIClient(cookies)
+    return InstagramAPIClient(
+        cookies, cookie_sink=_make_cookie_sink(cookie_file, raw)
+    )
+
+
+_FILE_LOCKS: dict[Path, threading.Lock] = {}
+
+
+def _make_cookie_sink(
+    cookie_file: Path, raw: Any
+) -> Callable[[dict[str, str]], None]:
+    """Return a sink that writes rotated cookies back in the file's own format.
+
+    Instagram periodically refreshes ``csrftoken``/``ig_did`` via Set-Cookie.
+    Persisting those updates keeps the stored jar in sync with the live session
+    so the next process doesn't present stale tokens. The original structure
+    (list-of-dicts from a browser export, or dict) is preserved in place.
+    """
+
+    def sink(combined: dict[str, str]) -> None:
+        lock = _FILE_LOCKS.setdefault(cookie_file, threading.Lock())
+        with lock:
+            if isinstance(raw, list):
+                by_name = {c["name"]: c for c in raw if "name" in c}
+                for name, value in combined.items():
+                    if name in by_name:
+                        by_name[name]["value"] = value
+                existing = set(by_name)
+                for name, value in combined.items():
+                    if name not in existing:
+                        raw.append({"name": name, "value": value})
+            elif isinstance(raw, dict):
+                raw.update(combined)
+            cookie_file.write_text(json.dumps(raw, indent=2))
+
+    return sink
 
 
 async def get_ready_posting_client(

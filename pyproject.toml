@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "instagram-lyr"
-version = "0.1.0"
+version = "0.1.1"
 description = "Instagram MCP server using browser cookies and httpx"
 requires-python = ">=3.11"
 dependencies = [

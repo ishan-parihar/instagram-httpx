@@ -15,6 +15,7 @@ from curl_cffi.requests import AsyncSession as _AsyncSession
 
 from instagram_mcp_server.cookie_import import load_or_import_cookies
 from instagram_mcp_server.core import AuthenticationError
+from instagram_mcp_server.scraping import identity
 from instagram_mcp_server.session_state import (
     portable_cookie_path,
     profile_exists as session_profile_exists,
@@ -66,16 +67,16 @@ async def validate_session() -> bool:
         if isinstance(cookies_raw, dict) and "cookies" in cookies_raw:
             cookies_raw = cookies_raw["cookies"]
         cookie_dict = {c["name"]: c["value"] for c in cookies_raw}
+        # Same coherent fingerprint bundle as the API client — a session must
+        # never be presented under two different UA/TLS pairings.
         headers = {
             "X-CSRFToken": cookie_dict.get("csrftoken", ""),
             "X-IG-App-ID": "936619743392459",
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
-            ),
+            "User-Agent": identity.USER_AGENT,
         }
+        headers.update(identity.client_hints())
         async with _AsyncSession(
-            impersonate="chrome131",
+            impersonate=identity.IMPERSONATE,
             cookies=cookie_dict, headers=headers, timeout=10,
         ) as client:
             resp = await client.get(
