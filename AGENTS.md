@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- Use `uv` for dependency management: `uv sync` (dev: `uv sync --group dev`)
+- Use `uv` for dependency management: `uv sync` (dev: `uv sync --extra dev`)
 - Lint: `uv run ruff check .` (auto-fix with `--fix`)
 - Format: `uv run ruff format .`
 - Type check: `uv run ty check` (using ty, not mypy)
 - Tests: `uv run pytest` (with coverage: `uv run pytest --cov`)
 - Pre-commit: `uv run pre-commit install` then `uv run pre-commit run --all-files`
 - Run server locally: `uv run -m instagram_mcp_server --no-headless`
-- Run via uvx (PyPI/package verification only): `uvx instagram-httpx`
+- Run via uvx (PyPI/package verification only): `uvx instagram-lyr`
 - Docker build: `docker build -t instagram-mcp-server .`
 - Install browser: `uv run patchright install chromium`
 
@@ -58,16 +58,18 @@ curl -s -X POST http://127.0.0.1:8000/mcp \
 
 ## Release Process
 
+There is **no CI release workflow** in this repo (unlike `linkedin-lyr`, which has one). Installs are source-based: `install.sh` clones `main` and installs from the local tree, so **pushing to `main` is the release**.
+
 ```bash
 git checkout main && git pull
-uv version --bump minor          # or: major, patch — updates pyproject.toml AND uv.lock
-gt create -m "chore: Bump version to X.Y.Z"
-gt submit                        # merge PR to trigger release workflow
+uv version --bump patch          # update version in pyproject.toml AND uv.lock
+uv run ruff check . && uv run pytest   # verify before release
+# commit + push to main (or via a PR, then merge)
 ```
 
-The CI release workflow automatically updates `manifest.json` and `docker-compose.yml` with the new version — do not update them manually.
+Update `manifest.json` and `docker-compose.yml` version fields manually in the same bump — this repo has no automation updating them.
 
-After the workflow completes, file a PR in the MCP registry to update the version for `instagram-httpx`.
+After the release, file a PR in the MCP registry to update the version for `instagram-httpx`.
 
 ## Commit Messages
 

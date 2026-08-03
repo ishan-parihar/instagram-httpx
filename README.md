@@ -74,7 +74,7 @@ result = await upload_photo(
     image_path="photo.jpg",
     caption="Smart processed",
     aspect_ratio="auto",  # Auto-detect closest valid ratio
-    fit_mode="auto"       # Auto-select best processing mode
+    fit_mode="auto",  # Auto-select best processing mode
 )
 ```
 
@@ -395,6 +395,19 @@ This server is production-ready for:
 - Systemd persistence and deployment
 
 For systemd persistence and production deployment, see the production documentation in the `docs/` directory.
+
+## Related CLI Tools
+
+This project is part of a family of agent-friendly CLI tools for social platforms:
+
+| Tool | CLI | Repo |
+|------|-----|------|
+| Instagram | `instagram-lyr` | [ishan-parihar/instagram-lyr](https://github.com/ishan-parihar/instagram-lyr) |
+| Reddit | `reddit-lyr` | [ishan-parihar/reddit-lyr](https://github.com/ishan-parihar/reddit-lyr) |
+| LinkedIn | `linkedin-lyr` | [ishan-parihar/linkedin-lyr](https://github.com/ishan-parihar/linkedin-lyr) |
+| Twitter/X | `twitter-lyr` | [ishan-parihar/twitter-lyr](https://github.com/ishan-parihar/twitter-lyr) |
+| Discord | `discord` | [ishan-parihar/discord-cli](https://github.com/ishan-parihar/discord-cli) |
+| Telegram | `tg` | [ishan-parihar/tg-cli](https://github.com/ishan-parihar/tg-cli) |
 
 ## License
 
