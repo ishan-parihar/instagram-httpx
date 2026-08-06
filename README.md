@@ -339,6 +339,11 @@ The server uses a hybrid approach:
 - Media files automatically processed to meet Instagram specifications
 - Stories have stricter duration limits (60s vs 180s for feed videos)
 
+### Known Issues
+- **Two separate cookie stores.** Posting + DMs use a **multi-account store** (`~/.instagram-lyr/accounts/<name>/cookies.json`); follow/like/comment tools gate on a **legacy default profile** (`~/.instagram-lyr/profile/`). On installs without the legacy profile dir present, posting works but every follow/like/comment tool reports "session expired" even with valid cookies — a deployment gap, not a poisoned session.
+- **Rate limiting:** Instagram rate-limits test accounts (`PhotoNotUpload`, DM throttling); the tool surfaces this cleanly rather than crashing.
+- Runs the browser-based scraping **extractor** (chromedriver, separate auth from the posting client) for profile/feed reads.
+
 ## Authentication
 
 | Scenario | What happens |
